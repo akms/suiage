@@ -8,7 +8,7 @@ import (
 
 func ReadOption() []string {
 	ChangeDir("/etc")
-	infile_options,err := os.Open("yoseage.conf")
+	infile_options,err := os.Open("suiage.conf")
 	if err != nil {
 		log.Fatal(err)
 	}

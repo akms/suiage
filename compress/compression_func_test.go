@@ -27,9 +27,9 @@ func TestMakeFile(t *testing.T) {
 }
 
 func TestMatchDefaultTarget(t *testing.T) {
-	str := strings.Fields(`^lost\+found$ ^proc$ ^sys$ ^dev$ ^mnt$ ^var$ ^run$`)
+	str := strings.Fields(`^lost\+found$ ^proc$ ^sys$ ^dev$ ^mnt$ ^media$ ^run$ ^selinux$`)
 	for _, s := range str {
-		if !MatchTarget(s) {
+		if !MatchDefaultTarget(s) {
 			t.Errorf("Match faild %s",s)
 		}
 	}
