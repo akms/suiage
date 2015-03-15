@@ -1,4 +1,4 @@
-package suiage
+package compress
 
 import (
 	"os"
