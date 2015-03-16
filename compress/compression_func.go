@@ -137,7 +137,6 @@ compress:
 			if tmp_fileinfo, err = ioutil.ReadDir(infile.Name()); err != nil {
 				log.Fatal(err)
 			}
-			fmt.Println(tmp_fileinfo)
 			if len(tmp_fileinfo) == 0 {
 				fmt.Println(infile.Name())
 				tmpname := filepath.Join(dirname, infile.Name())
