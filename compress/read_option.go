@@ -23,4 +23,3 @@ func ReadOption() []string {
 	}
 	return lines
 }
-

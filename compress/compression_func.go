@@ -64,9 +64,6 @@ func MatchOptionTarget(name string) bool {
 	for _, s := range option_except_targets {
 		option_Regexp := regexp.MustCompile(s)
 		if option_Regexp.MatchString(name) {
-			//option_targets = append(option_targets[:i], option_targets[i+1:]...)
-			//fmt.Println(name)
-			//fmt.Println(option_except_targets)
 			return true
 		}
 	}
