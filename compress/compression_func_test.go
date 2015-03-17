@@ -2,7 +2,11 @@ package compress
 
 import (
 	"archive/tar"
+	"bytes"
 	"compress/gzip"
+	"fmt"
+	"io"
+	"io/ioutil"
 	"os"
 	"strconv"
 	"strings"
@@ -112,7 +116,7 @@ func TestMatchDefaultTarget(t *testing.T) {
 			t.Errorf("Match faild %s", s)
 		}
 	}
-	default_except_targets = strings.Fields(`^lost\+found$ ^proc$ ^sys$ ^dev$ ^mnt$ ^media$ ^run$ ^selinux$ ^run`)
+	default_except_targets = strings.Fields(`^lost\+found$ ^proc$ ^sys$ ^dev$ ^mnt$ ^media$ ^run$ ^selinux$ ^run$`)
 	str = strings.Fields("var etc lib lib64")
 	for _, s := range str {
 		if !MatchDefaultTarget(s) {
@@ -135,4 +139,68 @@ func TestMatchOptionTarget(t *testing.T) {
 			t.Errorf("Match faild %s", s)
 		}
 	}
+}
+
+func TestCompressionFile(t *testing.T) {
+	var (
+		br               *bytes.Reader
+		gw               *gzip.Writer
+		gr               *gzip.Reader
+		tw               *tar.Writer
+		tr               *tar.Reader
+		file, check_file *os.File
+		file_stat                 os.FileInfo
+		hostname, remove_filename string
+		checked_fileinfo          []os.FileInfo
+		err                       error
+		hdr                       *tar.Header
+	)
+
+	hostname, _ = os.Hostname()
+	hostname = "/mnt/" + hostname
+	os.Mkdir(hostname, os.ModePerm)
+
+	option_except_targets = strings.Fields(`^lost\+found$ ^proc$ ^sys$ ^dev$ ^mnt$ ^media$ ^run$ ^selinux$ ^run$ ^tmp$ ^_old$ ^boot$ ^opt$ ^root$ ^sbin$ ^etc$ ^var$ ^home$`)
+
+	ChangeDir("/")
+	checked_fileinfo, _ = ioutil.ReadDir("/srv")
+	gw, tw, file = MakeFile("srv")
+	CompressionFile(tw, checked_fileinfo, "srv")
+	defer file.Close()
+	defer gw.Close()
+	defer tw.Close()
+
+	remove_filename = hostname + "/srv.tar.gz"
+	body, _ := ioutil.ReadFile(remove_filename)
+	check_file,_ = os.Open(remove_filename)
+	br = bytes.NewReader(body)
+	
+	file_stat,_ = check_file.Stat()
+	hdr,_ = tar.FileInfoHeader(file_stat,"")
+	fmt.Println(hdr)
+	fmt.Println(br)
+	gr, err = gzip.NewReader(check_file)
+	if err != nil {
+		t.Errorf("Can't read gr")
+	}
+	
+	tr = tar.NewReader(check_file)
+	
+	for {
+		hdr, err = tr.Next()
+
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			t.Errorf("Can't read hdr %s\n", err)
+			break
+		} else {
+			fmt.Printf("%s:\n", hdr.Name)
+		}
+	}
+	os.Remove(remove_filename)
+	os.Remove(hostname)
+	defer check_file.Close()
+	defer gr.Close()
 }
