@@ -132,7 +132,8 @@ func TestMatchDefaultTarget(t *testing.T) {
 }
 
 func TestMatchOptionTarget(t *testing.T) {
-	str := strings.Fields("_old boot opt root sbin etc var home")
+	//str := strings.Fields("_old boot opt root sbin etc var home")
+	str := strings.Fields("_old")
 	option_except_targets = ReadOption()
 	for _, s := range str {
 		if !MatchOptionTarget(s) {
