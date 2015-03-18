@@ -2,6 +2,7 @@ package compress
 
 import (
 	"archive/tar"
+	"bytes"
 	"compress/gzip"
 	"fmt"
 	"io"
@@ -165,16 +166,22 @@ compress:
 			} else {
 				body, _ := os.Open(infile.Name())
 				hdr, _ := tar.FileInfoHeader(infile, "")
-				hdr.Typeflag = tar.TypeRegA
+				//180Mのバイナリファイルでwrite too long エラーが出たので
+				//tar.TypeRegAからtar.TypeRegへ変更
+				//hdr.Typeflag = tar.TypeRegA
+				hdr.Typeflag = tar.TypeReg
 				hdr.Name = tmpname
 				if err = tw.WriteHeader(hdr); err != nil {
 					log.Fatal(err)
 				}
 				if body != nil {
-					if _, err = io.Copy(tw, body); err != nil {
-						fmt.Println("hoge")
+					var buf bytes.Buffer
+					
+					if _, err = io.Copy(&buf, body); err != nil {
+						fmt.Printf("write faild %s\n",tmpname)
 						log.Fatal(err)
 					}
+					tw.Write(buf.Bytes())
 				}
 			}
 		}

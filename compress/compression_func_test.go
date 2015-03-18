@@ -59,16 +59,15 @@ func NamedMakeFile(file *os.File, create_file_name string) (flag bool) {
 
 func TestMakeFile(t *testing.T) {
 	var (
-		//	gw               *gzip.Writer
 		fileWriter       io.WriteCloser
 		tw               *tar.Writer
 		file             *os.File
 		create_file_name string
 		hostname         string
 	)
-	//gw, tw, file = MakeFile("")
+
 	fileWriter, tw, file = MakeFile("")
-	//if gw == nil {
+
 	if fileWriter == nil {
 		t.Errorf("make faild 1st gzip writer.")
 	}
@@ -83,7 +82,6 @@ func TestMakeFile(t *testing.T) {
 		t.Errorf("got file name %s.", file.Name())
 	}
 	defer file.Close()
-	//defer gw.Close()
 	defer fileWriter.Close()
 	defer tw.Close()
 
@@ -91,10 +89,9 @@ func TestMakeFile(t *testing.T) {
 	hostname = "/mnt/" + hostname
 	os.Mkdir(hostname, os.ModePerm)
 	create_file_name = "etc"
-	//	gw, tw, file = MakeFile(create_file_name)
+
 	fileWriter, tw, file = MakeFile(create_file_name)
 
-	//	if gw == nil {
 	if fileWriter == nil {
 		t.Errorf("make faild 2nd gzip writer.")
 	}
@@ -109,7 +106,6 @@ func TestMakeFile(t *testing.T) {
 		t.Errorf("got file name %s.", file.Name())
 	}
 	defer file.Close()
-	//defer gw.Close()
 	defer fileWriter.Close()
 	defer tw.Close()
 }
@@ -183,7 +179,7 @@ func TestCompressionFile(t *testing.T) {
 	tmpWrite()
 
 	//以下今回のテストの目的である.tar.gzファイルの読み込み
-	//.tarファイルでは動作することが確認できている
+	
 	remove_filename = hostname + "/srv.tar.gz"
 	ChangeDir(hostname)
 	check_file, err = os.Open(remove_filename)
