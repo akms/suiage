@@ -45,6 +45,7 @@ func MakeFile(create_file_name string) (io.WriteCloser, *tar.Writer, *os.File) {
 	if file, err = os.Create(hostname); err != nil {
 		log.Fatal(err)
 	}
+	fmt.Println(hostname)
 	fileWriter = file
 	fileWriter = gzip.NewWriter(file)
 	tw = tar.NewWriter(fileWriter)
@@ -130,7 +131,6 @@ compress:
 				log.Fatal(err)
 			}
 			if len(tmp_fileinfo) == 0 {
-				fmt.Println(infile.Name())
 				tmpname := filepath.Join(dirname, infile.Name())
 				hdr, _ := tar.FileInfoHeader(infile, "")
 				hdr.Typeflag = tar.TypeDir

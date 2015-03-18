@@ -208,7 +208,7 @@ func TestCompressionFile(t *testing.T) {
 			break
 		}
 		if hdr.Name != "srv/test.txt" {
-			t.Errorf("want srv/test.txt. got :%s\n",hdr.Name)
+			t.Errorf("want srv/test.txt. got :%s\n", hdr.Name)
 		}
 	}
 	os.Remove(remove_filename)

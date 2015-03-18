@@ -17,7 +17,7 @@ func TestReadOption(t *testing.T) {
 	}
 	for i, s := range read_strings {
 		if s != test_strings[i] {
-			t.Errorf("test fatal got %s",s)
+			t.Errorf("test fatal got %s", s)
 		}
 	}
 

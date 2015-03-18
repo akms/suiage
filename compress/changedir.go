@@ -1,8 +1,8 @@
 package compress
 
 import (
-	"os"
 	"log"
+	"os"
 )
 
 func ChangeDir(dirName string) {
