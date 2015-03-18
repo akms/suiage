@@ -1,8 +1,8 @@
 package compress
 
 import (
-	"testing"
 	"os"
+	"testing"
 )
 
 func TestChangeDir(t *testing.T) {
