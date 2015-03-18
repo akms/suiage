@@ -4,7 +4,6 @@ import (
 	"archive/tar"
 	"bytes"
 	"compress/gzip"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
@@ -60,14 +59,17 @@ func NamedMakeFile(file *os.File, create_file_name string) (flag bool) {
 
 func TestMakeFile(t *testing.T) {
 	var (
-		gw               *gzip.Writer
+		//	gw               *gzip.Writer
+		fileWriter       io.WriteCloser
 		tw               *tar.Writer
 		file             *os.File
 		create_file_name string
 		hostname         string
 	)
-	gw, tw, file = MakeFile("")
-	if gw == nil {
+	//gw, tw, file = MakeFile("")
+	fileWriter, tw, file = MakeFile("")
+	//if gw == nil {
+	if fileWriter == nil {
 		t.Errorf("make faild 1st gzip writer.")
 	}
 	if tw == nil {
@@ -81,16 +83,19 @@ func TestMakeFile(t *testing.T) {
 		t.Errorf("got file name %s.", file.Name())
 	}
 	defer file.Close()
-	defer gw.Close()
+	//defer gw.Close()
+	defer fileWriter.Close()
 	defer tw.Close()
 
 	hostname, _ = os.Hostname()
 	hostname = "/mnt/" + hostname
 	os.Mkdir(hostname, os.ModePerm)
 	create_file_name = "etc"
-	gw, tw, file = MakeFile(create_file_name)
+	//	gw, tw, file = MakeFile(create_file_name)
+	fileWriter, tw, file = MakeFile(create_file_name)
 
-	if gw == nil {
+	//	if gw == nil {
+	if fileWriter == nil {
 		t.Errorf("make faild 2nd gzip writer.")
 	}
 	if tw == nil {
@@ -104,7 +109,8 @@ func TestMakeFile(t *testing.T) {
 		t.Errorf("got file name %s.", file.Name())
 	}
 	defer file.Close()
-	defer gw.Close()
+	//defer gw.Close()
+	defer fileWriter.Close()
 	defer tw.Close()
 }
 
@@ -141,66 +147,70 @@ func TestMatchOptionTarget(t *testing.T) {
 	}
 }
 
+func tmpWrite() {
+	var (
+		fileWriter       io.WriteCloser
+		tw               *tar.Writer
+		file             *os.File
+		checked_fileinfo []os.FileInfo
+	)
+	ChangeDir("/")
+	checked_fileinfo, _ = ioutil.ReadDir("/srv")
+	fileWriter, tw, file = MakeFile("srv")
+	ChangeDir("/srv")
+	CompressionFile(tw, checked_fileinfo, "srv")
+	defer file.Close()
+	//defer gw.Close()
+	defer fileWriter.Close()
+	defer tw.Close()
+}
+
 func TestCompressionFile(t *testing.T) {
 	var (
-		br               *bytes.Reader
-		gw               *gzip.Writer
-		gr               *gzip.Reader
-		tw               *tar.Writer
-		tr               *tar.Reader
-		file, check_file *os.File
-		file_stat                 os.FileInfo
+		check_file                *os.File
 		hostname, remove_filename string
-		checked_fileinfo          []os.FileInfo
 		err                       error
 		hdr                       *tar.Header
+		fileReader                io.ReadCloser
+		buf                       bytes.Buffer
 	)
 
 	hostname, _ = os.Hostname()
 	hostname = "/mnt/" + hostname
 	os.Mkdir(hostname, os.ModePerm)
+	option_except_targets = strings.Fields(`^lost\+found$ ^proc$ ^sys$ ^dev$ ^mnt$ ^media$ ^run$ ^selinux$ ^tmp$ ^_old$ ^boot$ ^opt$ ^root$ ^sbin$ ^etc$ ^var$ ^home$`)
 
-	option_except_targets = strings.Fields(`^lost\+found$ ^proc$ ^sys$ ^dev$ ^mnt$ ^media$ ^run$ ^selinux$ ^run$ ^tmp$ ^_old$ ^boot$ ^opt$ ^root$ ^sbin$ ^etc$ ^var$ ^home$`)
+	tmpWrite()
 
-	ChangeDir("/")
-	checked_fileinfo, _ = ioutil.ReadDir("/srv")
-	gw, tw, file = MakeFile("srv")
-	CompressionFile(tw, checked_fileinfo, "srv")
-	defer file.Close()
-	defer gw.Close()
-	defer tw.Close()
-
+	//以下今回のテストの目的である.tar.gzファイルの読み込み
+	//.tarファイルでは動作することが確認できている
 	remove_filename = hostname + "/srv.tar.gz"
-	body, _ := ioutil.ReadFile(remove_filename)
-	check_file,_ = os.Open(remove_filename)
-	br = bytes.NewReader(body)
-	
-	file_stat,_ = check_file.Stat()
-	hdr,_ = tar.FileInfoHeader(file_stat,"")
-	fmt.Println(hdr)
-	fmt.Println(br)
-	gr, err = gzip.NewReader(check_file)
+	ChangeDir(hostname)
+	check_file, err = os.Open(remove_filename)
 	if err != nil {
-		t.Errorf("Can't read gr")
+		t.Errorf("Can't open file %s\n", remove_filename)
 	}
-	
-	tr = tar.NewReader(check_file)
-	
+	defer check_file.Close()
+
+	_, err = io.Copy(&buf, check_file)
+	if fileReader, err = gzip.NewReader(&buf); err != nil {
+		t.Errorf("%s", err)
+	}
+	defer fileReader.Close()
+	tr := tar.NewReader(fileReader)
 	for {
 		hdr, err = tr.Next()
-
 		if err == io.EOF {
 			break
 		}
 		if err != nil {
 			t.Errorf("Can't read hdr %s\n", err)
 			break
-		} else {
-			fmt.Printf("%s:\n", hdr.Name)
+		}
+		if hdr.Name != "srv/test.txt" {
+			t.Errorf("want srv/test.txt. got :%s\n",hdr.Name)
 		}
 	}
 	os.Remove(remove_filename)
 	os.Remove(hostname)
-	defer check_file.Close()
-	defer gr.Close()
 }

@@ -12,16 +12,18 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"io"
 )
 
 var (
-	gw                                            *gzip.Writer
+	//gw                                            *gzip.Writer
+	fileWriter io.WriteCloser
 	tw                                            *tar.Writer
 	file                                          *os.File
 	default_except_targets, option_except_targets []string
 )
 
-func MakeFile(create_file_name string) (*gzip.Writer, *tar.Writer, *os.File) {
+func MakeFile(create_file_name string) (io.WriteCloser/**gzip.Writer*/, *tar.Writer, *os.File) {
 	var (
 		hostname                     string
 		err                          error
@@ -44,9 +46,13 @@ func MakeFile(create_file_name string) (*gzip.Writer, *tar.Writer, *os.File) {
 	if file, err = os.Create(hostname); err != nil {
 		log.Fatal(err)
 	}
-	gw = gzip.NewWriter(file)
-	tw = tar.NewWriter(gw)
-	return gw, tw, file
+	fileWriter =  file	
+	fileWriter = gzip.NewWriter(file)
+	//gw = gzio.NewWriter(file)
+	//tw = tar.NewWriter(gw)
+	tw = tar.NewWriter(fileWriter)
+	//return gw, tw, file
+	return fileWriter, tw, file
 }
 
 func MatchDefaultTarget(name string) bool {
@@ -93,10 +99,12 @@ L:
 					log.Fatal(err)
 				}
 				ChangeDir(info.Name())
-				gw, tw, file = MakeFile(info.Name())
+//				gw, tw, file = MakeFile(info.Name())
+				fileWriter, tw, file = MakeFile(info.Name())			
 				CompressionFile(tw, checked_fileinfo, info.Name())
 				defer file.Close()
-				defer gw.Close()
+				//defer gw.Close()
+				defer fileWriter.Close()
 				defer tw.Close()
 				ChangeDir(dirpath)
 			}
@@ -168,16 +176,20 @@ compress:
 					log.Fatal(err)
 				}
 			} else {
-				//fmt.Println(tmpname)
-				body, _ := ioutil.ReadFile(infile.Name())
+//				body, _ := ioutil.ReadFile(infile.Name())
+				body, _ := os.Open(infile.Name())
 				hdr, _ := tar.FileInfoHeader(infile, "")
 				hdr.Typeflag = tar.TypeRegA
 				hdr.Name = tmpname
 				if err = tw.WriteHeader(hdr); err != nil {
 					log.Fatal(err)
 				}
-				if _, err = tw.Write(body); err != nil {
-					log.Fatal(err)
+				if body != nil {
+//					if _, err = tw.Write(body); err != nil {
+						if _, err = io.Copy(tw,body); err != nil {
+						fmt.Println("hoge")
+						log.Fatal(err)
+					}
 				}
 			}
 		}
