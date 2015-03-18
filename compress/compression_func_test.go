@@ -160,7 +160,6 @@ func tmpWrite() {
 	ChangeDir("/srv")
 	CompressionFile(tw, checked_fileinfo, "srv")
 	defer file.Close()
-	//defer gw.Close()
 	defer fileWriter.Close()
 	defer tw.Close()
 }
