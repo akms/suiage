@@ -8,7 +8,10 @@ import (
 
 func FileExists(filename string) bool {
 	_, err := os.Stat(filename)
-	return err == nil
+	if err != nil {
+		return false
+	}
+	return true
 }
 
 func ReadOption() (lines []string) {
@@ -29,7 +32,7 @@ func ReadOption() (lines []string) {
 		}
 		return
 	} else {
-		lines = []string{""}
+		lines = make([]string, 0, 0)
 		return
 	}
 }
