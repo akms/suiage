@@ -107,14 +107,6 @@ L:
 	}
 }
 
-/*func walkFn(path string,info os.FileInfo,err error) error {
-	fmt.Println(filepath.Base(info.Name()))
-	return nil
-}
-if err = infile.Walk(file.Name(),walkFn); err != nil {
-	log.Fatal(err)
-}*/
-
 func CompressionFile(tw *tar.Writer, checked_fileinfo []os.FileInfo, dirname string) {
 	var (
 		err            error

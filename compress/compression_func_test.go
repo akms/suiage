@@ -79,7 +79,7 @@ func TestMakeFile(t *testing.T) {
 	}
 
 	if !NoNameMakeFile(file) {
-		t.Errorf("got file name %s.", file.Name())
+		t.Errorf("got diff file name %s.", file.Name())
 	}
 	defer file.Close()
 	defer fileWriter.Close()
@@ -103,7 +103,7 @@ func TestMakeFile(t *testing.T) {
 	}
 
 	if !NamedMakeFile(file, create_file_name) {
-		t.Errorf("got file name %s.", file.Name())
+		t.Errorf("got diff file name %s.", file.Name())
 	}
 	defer file.Close()
 	defer fileWriter.Close()
@@ -128,12 +128,11 @@ func TestMatchDefaultTarget(t *testing.T) {
 }
 
 func TestMatchOptionTarget(t *testing.T) {
-	//str := strings.Fields("_old boot opt root sbin etc var home")
-	str := strings.Fields("_old")
-	option_except_targets = ReadOption()
+	str := strings.Fields("_old etc var src")
+	option_except_targets = strings.Fields("^_old$ ^etc$ ^var$ ^src$")
 	for _, s := range str {
 		if !MatchOptionTarget(s) {
-			t.Errorf("Match faild %s. Please check /etc/suiage.conf", s)
+			t.Errorf("Match faild %s.", s)
 		}
 	}
 	str = strings.Fields("lost+found proc sys dev mnt media selinux run")
