@@ -3,7 +3,8 @@ package main
 import (
 	"log"
 	"os"
-	"suiage/compress"
+	//"suiage/compress"
+	"github.com/akms/suiage/compress"
 )
 
 func main() {

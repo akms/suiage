@@ -9,6 +9,8 @@ suiage makes .tar.gz files into /mnt .
 
 > git git clone https://github.com/akms/suiage 
 
+> go get github.com/akms/suiage
+
 > cd suiage
 
 > go install
