@@ -87,11 +87,26 @@ func CheckTarget(dirpath string) {
 	}
 L:
 	for _, info := range beforecheck_fileinfo {
-		if info.IsDir() {
-			if MatchDefaultTarget(info.Name()) {
-				if MatchOptionTarget(info.Name()) {
-					continue L
+		if MatchDefaultTarget(info.Name()) {
+			if MatchOptionTarget(info.Name()) {
+				continue L
+			}
+			if info.Mode()&os.ModeSymlink == os.ModeSymlink {
+				tmpname := filepath.Join(dirpath, info.Name())
+				fileWriter, tw, file = MakeFile(info.Name())
+				evalsym, _ := os.Readlink(info.Name())
+				hdr, _ := tar.FileInfoHeader(info, evalsym)
+				hdr.Typeflag = tar.TypeSymlink
+				//hdr.Name = tmpname
+				if err = tw.WriteHeader(hdr); err != nil {
+					fmt.Printf("write faild header symlink %s\n", tmpname)
+					log.Fatal(err)
 				}
+				defer file.Close()
+				defer fileWriter.Close()
+				defer tw.Close()
+			}
+			if info.IsDir() {
 				if checked_fileinfo, err = ioutil.ReadDir(info.Name()); err != nil {
 					log.Fatal(err)
 				}
