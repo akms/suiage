@@ -150,11 +150,17 @@ func tmpWrite() {
 		file             *os.File
 		checked_fileinfo []os.FileInfo
 	)
-	ChangeDir("/")
-	checked_fileinfo, _ = ioutil.ReadDir("/srv")
-	fileWriter, tw, file = MakeFile("srv")
-	ChangeDir("/srv")
-	CompressionFile(tw, checked_fileinfo, "srv")
+	ChangeDir("/tmp")
+	os.Mkdir("comp_test", os.ModePerm)
+	ChangeDir("comp_test")
+	file, _ = os.Create("test.txt")
+	defer file.Close()
+
+	ChangeDir("/tmp")
+	checked_fileinfo, _ = ioutil.ReadDir("comp_test")
+	fileWriter, tw, file = MakeFile("comp_test")
+	ChangeDir("/tmp/comp_test")
+	CompressionFile(tw, checked_fileinfo, "comp_test")
 	defer file.Close()
 	defer fileWriter.Close()
 	defer tw.Close()
@@ -173,13 +179,13 @@ func TestCompressionFile(t *testing.T) {
 	hostname, _ = os.Hostname()
 	hostname = "/mnt/" + hostname
 	os.Mkdir(hostname, os.ModePerm)
-	option_except_targets = strings.Fields(`^lost\+found$ ^proc$ ^sys$ ^dev$ ^mnt$ ^media$ ^run$ ^selinux$ ^tmp$ ^_old$ ^boot$ ^opt$ ^root$ ^sbin$ ^etc$ ^var$ ^home$`)
+	option_except_targets = strings.Fields(`^lost\+found$ ^proc$ ^sys$ ^dev$ ^mnt$ ^media$ ^run$ ^selinux$ ^tmp$ ^_old$ ^boot$ ^opt$ ^root$ ^sbin$ ^etc$ ^var$ ^home$ ^srv$`)
 
 	tmpWrite()
 
 	//以下今回のテストの目的である.tar.gzファイルの読み込み
-	
-	remove_filename = hostname + "/srv.tar.gz"
+
+	remove_filename = hostname + "/comp_test.tar.gz"
 	ChangeDir(hostname)
 	check_file, err = os.Open(remove_filename)
 	if err != nil {
@@ -202,10 +208,12 @@ func TestCompressionFile(t *testing.T) {
 			t.Errorf("Can't read hdr %s\n", err)
 			break
 		}
-		if hdr.Name != "srv/test.txt" {
-			t.Errorf("want srv/test.txt. got :%s\n", hdr.Name)
+		if hdr.Name != "comp_test/test.txt" {
+			t.Errorf("want comp_test/test.txt. got :%s\n", hdr.Name)
 		}
 	}
 	os.Remove(remove_filename)
+	os.Remove("/tmp/comp_test/test.txt")
+	os.Remove("/tmp/comp_test")
 	os.Remove(hostname)
 }

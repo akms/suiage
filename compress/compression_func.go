@@ -2,7 +2,7 @@ package compress
 
 import (
 	"archive/tar"
-	"bytes"
+	//	"bytes"
 	"compress/gzip"
 	"fmt"
 	"io"
@@ -79,7 +79,7 @@ func CheckTarget(dirpath string) {
 		beforecheck_fileinfo, checked_fileinfo []os.FileInfo
 		err                                    error
 	)
-	default_except_targets = strings.Fields(`^lost\+found$ ^proc$ ^sys$ ^dev$ ^mnt$ ^media$ ^run$ ^selinux$`)
+	default_except_targets = strings.Fields(`^lost\+found$ ^proc$ ^sys$ ^dev$ ^mnt$ ^media$ ^run$ ^selinux$ ^_old$`)
 	option_except_targets = ReadOption()
 	ChangeDir(dirpath)
 	if beforecheck_fileinfo, err = ioutil.ReadDir(dirpath); err != nil {
@@ -129,6 +129,7 @@ compress:
 				hdr.Typeflag = tar.TypeDir
 				hdr.Name = tmpname
 				if err = tw.WriteHeader(hdr); err != nil {
+					fmt.Printf("write faild header Dir %s\n", tmpname)
 					log.Fatal(err)
 				}
 				continue compress
@@ -153,10 +154,13 @@ compress:
 				hdr.Typeflag = tar.TypeSymlink
 				hdr.Name = tmpname
 				if err = tw.WriteHeader(hdr); err != nil {
+					fmt.Printf("write faild header symlink %s\n", tmpname)
 					log.Fatal(err)
 				}
 			} else {
-				body, _ := os.Open(infile.Name())
+				//io.Copyを使用しない場合はos.Openからioutil.ReadFileに変更する必要あり
+				//body, _ := os.Open(infile.Name())
+				body, _ := ioutil.ReadFile(infile.Name())
 				hdr, _ := tar.FileInfoHeader(infile, "")
 				//180Mのバイナリファイルでwrite too long エラーが出たので
 				//tar.TypeRegAからtar.TypeRegへ変更
@@ -164,16 +168,19 @@ compress:
 				hdr.Typeflag = tar.TypeReg
 				hdr.Name = tmpname
 				if err = tw.WriteHeader(hdr); err != nil {
+					fmt.Printf("write faild header %s\n", tmpname)
 					log.Fatal(err)
 				}
 				if body != nil {
-					var buf bytes.Buffer
-					
+					//io.Copyでは動作が安定せず、途中で書き込みに失敗する
+					/*var buf bytes.Buffer
+
 					if _, err = io.Copy(&buf, body); err != nil {
 						fmt.Printf("write faild %s\n",tmpname)
 						log.Fatal(err)
 					}
-					tw.Write(buf.Bytes())
+					tw.Write(buf.Bytes())*/
+					tw.Write(body)
 				}
 			}
 		}

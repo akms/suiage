@@ -16,8 +16,10 @@ func main() {
 		log.Fatal(err)
 	}
 	hostname = "/mnt/" + hostname
-	if err = os.Mkdir(hostname, os.ModePerm); err != nil {
-		log.Fatal(err)
+	if _, err = os.Stat(hostname); err != nil {
+		if err = os.Mkdir(hostname, os.ModePerm); err != nil {
+			log.Fatal(err)
+		}
 	}
 	compress.CheckTarget(dirPaths)
 }
