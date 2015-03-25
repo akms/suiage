@@ -173,7 +173,7 @@ compress:
 					log.Fatal(err)
 				}
 			} else {
-				//io.Copyを使用しない場合はos.Openからioutil.ReadFileに変更する必要あり
+				//io.Copyを使用しない場合はos.Openからioutil.ReadFileに変更
 				//body, _ := os.Open(infile.Name())
 				body, _ := ioutil.ReadFile(infile.Name())
 				hdr, _ := tar.FileInfoHeader(infile, "")
@@ -188,6 +188,7 @@ compress:
 				}
 				if body != nil {
 					//io.Copyでは動作が安定せず、途中で書き込みに失敗する
+					//要原因究明
 					/*var buf bytes.Buffer
 
 					if _, err = io.Copy(&buf, body); err != nil {
