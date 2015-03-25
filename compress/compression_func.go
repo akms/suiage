@@ -79,7 +79,7 @@ func CheckTarget(dirpath string) {
 		beforecheck_fileinfo, checked_fileinfo []os.FileInfo
 		err                                    error
 	)
-	default_except_targets = strings.Fields(`^lost\+found$ ^proc$ ^sys$ ^dev$ ^mnt$ ^media$ ^run$ ^selinux$ ^_old$`)
+	default_except_targets = strings.Fields(`^lost\+found$ ^proc$ ^sys$ ^dev$ ^mnt$ ^media$ ^run$ ^selinux$ ^boot$ ^_old$`)
 	option_except_targets = ReadOption()
 	ChangeDir(dirpath)
 	if beforecheck_fileinfo, err = ioutil.ReadDir(dirpath); err != nil {
