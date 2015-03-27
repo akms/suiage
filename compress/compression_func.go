@@ -109,13 +109,27 @@ L:
 				if checked_fileinfo, err = ioutil.ReadDir(info.Name()); err != nil {
 					log.Fatal(err)
 				}
-				ChangeDir(info.Name())
-				fileWriter, tw, file = MakeFile(info.Name())
-				CompressionFile(tw, checked_fileinfo, info.Name())
-				defer file.Close()
-				defer fileWriter.Close()
-				defer tw.Close()
-				ChangeDir(dirpath)
+				if checked_fileinfo != nil {
+					ChangeDir(info.Name())
+					fileWriter, tw, file = MakeFile(info.Name())
+					CompressionFile(tw, checked_fileinfo, info.Name())
+					defer file.Close()
+					defer fileWriter.Close()
+					defer tw.Close()
+					ChangeDir(dirpath)
+				} else {
+					tmpname := filepath.Join(dirpath, info.Name())
+					fileWriter, tw, file = MakeFile(info.Name())
+					hdr, _ := tar.FileInfoHeader(info, "")
+					hdr.Typeflag = tar.TypeSymlink
+					if err = tw.WriteHeader(hdr); err != nil {
+						fmt.Printf("write faild header symlink %s\n", tmpname)
+						log.Fatal(err)
+					}
+					defer file.Close()
+					defer fileWriter.Close()
+					defer tw.Close()
+				}
 			}
 		}
 	}
