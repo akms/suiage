@@ -97,7 +97,6 @@ L:
 				evalsym, _ := os.Readlink(info.Name())
 				hdr, _ := tar.FileInfoHeader(info, evalsym)
 				hdr.Typeflag = tar.TypeSymlink
-				//hdr.Name = tmpname
 				if err = tw.WriteHeader(hdr); err != nil {
 					fmt.Printf("write faild header symlink %s\n", tmpname)
 					log.Fatal(err)
