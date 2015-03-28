@@ -109,7 +109,7 @@ L:
 				if checked_fileinfo, err = ioutil.ReadDir(info.Name()); err != nil {
 					log.Fatal(err)
 				}
-				if checked_fileinfo != nil {
+				if len(checked_fileinfo) != 0 {
 					ChangeDir(info.Name())
 					fileWriter, tw, file = MakeFile(info.Name())
 					CompressionFile(tw, checked_fileinfo, info.Name())
