@@ -121,7 +121,7 @@ L:
 					tmpname := filepath.Join(dirpath, info.Name())
 					fileWriter, tw, file = MakeFile(info.Name())
 					hdr, _ := tar.FileInfoHeader(info, "")
-					hdr.Typeflag = tar.TypeSymlink
+					hdr.Typeflag = tar.TypeDir
 					if err = tw.WriteHeader(hdr); err != nil {
 						fmt.Printf("write faild header symlink %s\n", tmpname)
 						log.Fatal(err)
