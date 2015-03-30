@@ -20,7 +20,7 @@ var (
 	fileWriter                                    io.WriteCloser
 	tw                                            *tar.Writer
 	file                                          *os.File
-	default_except_targets, option_except_targets []string = strings.Fields(`^lost\+found$ ^proc$ ^sys$ ^dev$ ^mnt$ ^media$ ^run$ ^selinux$ ^boot$ ^_old$`),ReadOption()
+	default_except_targets, option_except_targets []string = strings.Fields(`^lost\+found$ ^proc$ ^sys$ ^dev$ ^mnt$ ^media$ ^run$ ^selinux$ ^boot$ ^_old$`), ReadOption()
 )
 
 func MakeFile(create_file_name string) (io.WriteCloser, *tar.Writer, *os.File) {
@@ -79,8 +79,6 @@ func CheckTarget(dirpath string) {
 		beforecheck_fileinfo, checked_fileinfo []os.FileInfo
 		err                                    error
 	)
-	//default_except_targets = 
-	//option_except_targets = 
 	ChangeDir(dirpath)
 	if beforecheck_fileinfo, err = ioutil.ReadDir(dirpath); err != nil {
 		log.Fatal(err)
