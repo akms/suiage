@@ -20,7 +20,7 @@ var (
 	fileWriter                                    io.WriteCloser
 	tw                                            *tar.Writer
 	file                                          *os.File
-	default_except_targets, option_except_targets []string = strings.Fields(`^lost\+found$ ^proc$ ^sys$ ^dev$ ^mnt$ ^media$ ^run$ ^selinux$ ^boot$ ^_old$`),ReadOption()
+	default_except_targets, option_except_targets []string = strings.Fields(`^lost\+found$ ^proc$ ^sys$ ^dev$ ^mnt$ ^media$ ^run$ ^selinux$ ^boot$ ^_old$`), ReadOption()
 )
 
 func MakeFile(create_file_name string) (io.WriteCloser, *tar.Writer, *os.File) {
@@ -79,8 +79,8 @@ func CheckTarget(dirpath string) {
 		beforecheck_fileinfo, checked_fileinfo []os.FileInfo
 		err                                    error
 	)
-	//default_except_targets = 
-	//option_except_targets = 
+	//default_except_targets =
+	//option_except_targets =
 	ChangeDir(dirpath)
 	if beforecheck_fileinfo, err = ioutil.ReadDir(dirpath); err != nil {
 		log.Fatal(err)
@@ -151,25 +151,21 @@ compress:
 			if tmp_fileinfo, err = ioutil.ReadDir(infile.Name()); err != nil {
 				log.Fatal(err)
 			}
-			if len(tmp_fileinfo) == 0 {
-				tmpname := filepath.Join(dirname, infile.Name())
-				hdr, _ := tar.FileInfoHeader(infile, "")
-				hdr.Typeflag = tar.TypeDir
-				hdr.Name = tmpname
-				if err = tw.WriteHeader(hdr); err != nil {
-					fmt.Printf("write faild header Dir %s\n", tmpname)
-					log.Fatal(err)
-				}
-				continue compress
-			} else {
-				change_dirpath, _ = filepath.Abs(infile.Name())
-				ChangeDir(change_dirpath)
-				dirname = filepath.Join(dirname, infile.Name())
-				CompressionFile(tw, tmp_fileinfo, dirname)
-				dirname, _ = filepath.Split(dirname)
-				change_dirpath, _ = filepath.Split(change_dirpath)
-				ChangeDir(change_dirpath)
+			tmpname := filepath.Join(dirname, infile.Name())
+			hdr, _ := tar.FileInfoHeader(infile, "")
+			hdr.Typeflag = tar.TypeDir
+			hdr.Name = tmpname
+			if err = tw.WriteHeader(hdr); err != nil {
+				fmt.Printf("write faild header Dir %s\n", tmpname)
+				log.Fatal(err)
 			}
+			change_dirpath, _ = filepath.Abs(infile.Name())
+			ChangeDir(change_dirpath)
+			dirname = filepath.Join(dirname, infile.Name())
+			CompressionFile(tw, tmp_fileinfo, dirname)
+			dirname, _ = filepath.Split(dirname)
+			change_dirpath, _ = filepath.Split(change_dirpath)
+			ChangeDir(change_dirpath)
 			tmp_fileinfo = nil
 		} else {
 			tmpname := filepath.Join(dirname, infile.Name())
