@@ -51,63 +51,61 @@ func NamedMakeFile(file *os.File, create_file_name string) (flag bool) {
 		flag = true
 	}
 	os.Remove(remove_filename)
-	hostname, _ = os.Hostname()
-	hostname = "/mnt/" + hostname
-	os.Remove(hostname)
 	return
 }
 
 func TestMakeFile(t *testing.T) {
 	var (
-		fileWriter       io.WriteCloser
-		tw               *tar.Writer
-		file             *os.File
+		fileio           *Fileio = &Fileio{}
 		create_file_name string
 		hostname         string
 	)
 
-	fileWriter, tw, file = MakeFile("")
+	fileio.MakeFile("")
 
-	if fileWriter == nil {
+	if fileio.fileWriter == nil {
 		t.Errorf("make faild 1st gzip writer.")
 	}
-	if tw == nil {
+	if fileio.tw == nil {
 		t.Errorf("make faild 1st tar writer.")
 	}
-	if file == nil {
+	if fileio.file == nil {
 		t.Errorf("make faild 1st file.")
 	}
 
-	if !NoNameMakeFile(file) {
-		t.Errorf("got diff file name %s.", file.Name())
+	if !NoNameMakeFile(fileio.file) {
+		t.Errorf("got diff file name %s.", fileio.file.Name())
 	}
-	defer file.Close()
-	defer fileWriter.Close()
-	defer tw.Close()
+	fileio.AllCloser()
 
 	hostname, _ = os.Hostname()
 	hostname = "/mnt/" + hostname
 	os.Mkdir(hostname, os.ModePerm)
 	create_file_name = "etc"
 
-	fileWriter, tw, file = MakeFile(create_file_name)
+	fileio.MakeFile(create_file_name)
 
-	if fileWriter == nil {
+	if fileio.fileWriter == nil {
 		t.Errorf("make faild 2nd gzip writer.")
 	}
-	if tw == nil {
+	if fileio.tw == nil {
 		t.Errorf("make faild 2nd tar writer.")
 	}
-	if file == nil {
+	if fileio.file == nil {
 		t.Errorf("make faild 2nd file.")
 	}
 
-	if !NamedMakeFile(file, create_file_name) {
-		t.Errorf("got diff file name %s.", file.Name())
+	if !NamedMakeFile(fileio.file, create_file_name) {
+		t.Errorf("got diff file name %s.", fileio.file.Name())
 	}
-	defer file.Close()
-	defer fileWriter.Close()
-	defer tw.Close()
+	fileio.AllCloser()
+
+	var c Comp = &Fileio{}
+	c.MakeFile(create_file_name)
+	c.AllCloser()
+	hostname, _ = os.Hostname()
+	hostname = "/mnt/" + hostname
+	os.Remove(hostname)
 }
 
 func TestMatchDefaultTarget(t *testing.T) {
@@ -145,9 +143,8 @@ func TestMatchOptionTarget(t *testing.T) {
 
 func tmpWrite() {
 	var (
-		fileWriter       io.WriteCloser
-		tw               *tar.Writer
 		file             *os.File
+		fileio           *Fileio = &Fileio{}
 		checked_fileinfo []os.FileInfo
 	)
 	ChangeDir("/tmp")
@@ -158,12 +155,10 @@ func tmpWrite() {
 
 	ChangeDir("/tmp")
 	checked_fileinfo, _ = ioutil.ReadDir("comp_test")
-	fileWriter, tw, file = MakeFile("comp_test")
+	fileio.MakeFile("comp_test")
 	ChangeDir("/tmp/comp_test")
-	CompressionFile(tw, checked_fileinfo, "comp_test")
-	defer file.Close()
-	defer fileWriter.Close()
-	defer tw.Close()
+	fileio.CompressionFile(checked_fileinfo, "comp_test")
+	fileio.AllCloser()
 }
 
 func TestCompressionFile(t *testing.T) {

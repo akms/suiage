@@ -2,7 +2,6 @@ package compress
 
 import (
 	"archive/tar"
-	//	"bytes"
 	"compress/gzip"
 	"fmt"
 	"io"
@@ -16,14 +15,35 @@ import (
 	"time"
 )
 
+type Comp interface {
+	CompressionFile([]os.FileInfo, string)
+	MakeFile(string)
+	AllCloser()
+}
+
+type Target interface {
+	MatchDefaultTarget(string) bool
+	MatchOptionTarget(string) bool
+	CheckTarget(string)
+}
+
+type Fileio struct {
+	fileWriter io.WriteCloser
+	tw         *tar.Writer
+	file       *os.File
+}
+
 var (
-	fileWriter                                    io.WriteCloser
-	tw                                            *tar.Writer
-	file                                          *os.File
 	default_except_targets, option_except_targets []string = strings.Fields(`^lost\+found$ ^proc$ ^sys$ ^dev$ ^mnt$ ^media$ ^run$ ^selinux$ ^boot$ ^_old$`), ReadOption()
 )
 
-func MakeFile(create_file_name string) (io.WriteCloser, *tar.Writer, *os.File) {
+func (comfile *Fileio) AllCloser() {
+	defer comfile.file.Close()
+	defer comfile.fileWriter.Close()
+	defer comfile.tw.Close()
+}
+
+func (comfile *Fileio) MakeFile(create_file_name string) {
 	var (
 		hostname                     string
 		err                          error
@@ -43,14 +63,13 @@ func MakeFile(create_file_name string) (io.WriteCloser, *tar.Writer, *os.File) {
 	} else {
 		hostname = "/mnt/" + hostname + "/" + create_file_name + ".tar.gz"
 	}
-	if file, err = os.Create(hostname); err != nil {
+	if comfile.file, err = os.Create(hostname); err != nil {
 		log.Fatal(err)
 	}
 	fmt.Println(hostname)
-	fileWriter = file
-	fileWriter = gzip.NewWriter(file)
-	tw = tar.NewWriter(fileWriter)
-	return fileWriter, tw, file
+	comfile.fileWriter = comfile.file
+	comfile.fileWriter = gzip.NewWriter(comfile.file)
+	comfile.tw = tar.NewWriter(comfile.fileWriter)
 }
 
 func MatchDefaultTarget(name string) bool {
@@ -78,8 +97,8 @@ func CheckTarget(dirpath string) {
 	var (
 		beforecheck_fileinfo, checked_fileinfo []os.FileInfo
 		err                                    error
+		comfile                                *Fileio = &Fileio{}
 	)
-
 	ChangeDir(dirpath)
 	if beforecheck_fileinfo, err = ioutil.ReadDir(dirpath); err != nil {
 		log.Fatal(err)
@@ -92,17 +111,15 @@ L:
 			}
 			if info.Mode()&os.ModeSymlink == os.ModeSymlink {
 				tmpname := filepath.Join(dirpath, info.Name())
-				fileWriter, tw, file = MakeFile(info.Name())
+				comfile.MakeFile(info.Name())
 				evalsym, _ := os.Readlink(info.Name())
 				hdr, _ := tar.FileInfoHeader(info, evalsym)
 				hdr.Typeflag = tar.TypeSymlink
-				if err = tw.WriteHeader(hdr); err != nil {
+				if err = comfile.tw.WriteHeader(hdr); err != nil {
 					fmt.Printf("write faild header symlink %s\n", tmpname)
 					log.Fatal(err)
 				}
-				defer file.Close()
-				defer fileWriter.Close()
-				defer tw.Close()
+				comfile.AllCloser()
 			}
 			if info.IsDir() {
 				if checked_fileinfo, err = ioutil.ReadDir(info.Name()); err != nil {
@@ -110,31 +127,27 @@ L:
 				}
 				if len(checked_fileinfo) != 0 {
 					ChangeDir(info.Name())
-					fileWriter, tw, file = MakeFile(info.Name())
-					CompressionFile(tw, checked_fileinfo, info.Name())
-					defer file.Close()
-					defer fileWriter.Close()
-					defer tw.Close()
+					comfile.MakeFile(info.Name())
+					comfile.CompressionFile(checked_fileinfo, info.Name())
+					comfile.AllCloser()
 					ChangeDir(dirpath)
 				} else {
 					tmpname := filepath.Join(dirpath, info.Name())
-					fileWriter, tw, file = MakeFile(info.Name())
+					comfile.MakeFile(info.Name())
 					hdr, _ := tar.FileInfoHeader(info, "")
 					hdr.Typeflag = tar.TypeDir
-					if err = tw.WriteHeader(hdr); err != nil {
+					if err = comfile.tw.WriteHeader(hdr); err != nil {
 						fmt.Printf("write faild header symlink %s\n", tmpname)
 						log.Fatal(err)
 					}
-					defer file.Close()
-					defer fileWriter.Close()
-					defer tw.Close()
+					comfile.AllCloser()
 				}
 			}
 		}
 	}
 }
 
-func CompressionFile(tw *tar.Writer, checked_fileinfo []os.FileInfo, dirname string) {
+func (f *Fileio) CompressionFile(checked_fileinfo []os.FileInfo, dirname string) {
 	var (
 		err            error
 		tmp_fileinfo   []os.FileInfo
@@ -154,14 +167,14 @@ compress:
 			hdr, _ := tar.FileInfoHeader(infile, "")
 			hdr.Typeflag = tar.TypeDir
 			hdr.Name = tmpname
-			if err = tw.WriteHeader(hdr); err != nil {
+			if err = f.tw.WriteHeader(hdr); err != nil {
 				fmt.Printf("write faild header Dir %s\n", tmpname)
 				log.Fatal(err)
 			}
 			change_dirpath, _ = filepath.Abs(infile.Name())
 			ChangeDir(change_dirpath)
 			dirname = filepath.Join(dirname, infile.Name())
-			CompressionFile(tw, tmp_fileinfo, dirname)
+			f.CompressionFile(tmp_fileinfo, dirname)
 			dirname, _ = filepath.Split(dirname)
 			change_dirpath, _ = filepath.Split(change_dirpath)
 			ChangeDir(change_dirpath)
@@ -176,35 +189,21 @@ compress:
 				hdr, _ := tar.FileInfoHeader(infile, evalsym)
 				hdr.Typeflag = tar.TypeSymlink
 				hdr.Name = tmpname
-				if err = tw.WriteHeader(hdr); err != nil {
+				if err = f.tw.WriteHeader(hdr); err != nil {
 					fmt.Printf("write faild header symlink %s\n", tmpname)
 					log.Fatal(err)
 				}
 			} else {
-				//io.Copyを使用しない場合はos.Openからioutil.ReadFileに変更
-				//body, _ := os.Open(infile.Name())
 				body, _ := ioutil.ReadFile(infile.Name())
 				hdr, _ := tar.FileInfoHeader(infile, "")
-				//180Mのバイナリファイルでwrite too long エラーが出たので
-				//tar.TypeRegAからtar.TypeRegへ変更
-				//hdr.Typeflag = tar.TypeRegA
 				hdr.Typeflag = tar.TypeReg
 				hdr.Name = tmpname
-				if err = tw.WriteHeader(hdr); err != nil {
+				if err = f.tw.WriteHeader(hdr); err != nil {
 					fmt.Printf("write faild header %s\n", tmpname)
 					log.Fatal(err)
 				}
 				if body != nil {
-					//io.Copyでは動作が安定せず、途中で書き込みに失敗する
-					//要原因究明
-					/*var buf bytes.Buffer
-
-					if _, err = io.Copy(&buf, body); err != nil {
-						fmt.Printf("write faild %s\n",tmpname)
-						log.Fatal(err)
-					}
-					tw.Write(buf.Bytes())*/
-					tw.Write(body)
+					f.tw.Write(body)
 				}
 			}
 		}
