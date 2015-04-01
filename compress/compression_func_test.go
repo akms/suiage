@@ -147,6 +147,18 @@ func TestMatchOptionTarget(t *testing.T) {
 	}
 }
 
+func TestTargetMatch(t *testing.T) {
+	var target *Target = &Target{"_old"}
+	option_except_targets = strings.Fields("^_old$ ^etc$")
+	if !targetMatch(target) {
+		t.Errorf("Faild")
+	}
+	var matcher Matcher = &Target{"etc"}
+	if !targetMatch(matcher) {
+		t.Errorf("Faild")
+	}
+}
+
 func tmpWrite() {
 	var (
 		file             *os.File

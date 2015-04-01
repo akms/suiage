@@ -46,6 +46,18 @@ func (comfile *Fileio) AllCloser() {
 	defer comfile.tw.Close()
 }
 
+func targetMatch(matcher Matcher) bool {
+	if !matcher.MatchDefaultTarget() {
+		fmt.Println("Target match default")
+		return true
+	}
+	if matcher.MatchOptionTarget() {
+		fmt.Println("Target match option")
+		return true
+	}
+	return false
+}
+
 func (comfile *Fileio) MakeFile(create_file_name string) {
 	var (
 		hostname                     string
