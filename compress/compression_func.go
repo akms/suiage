@@ -15,16 +15,19 @@ import (
 	"time"
 )
 
-type Comp interface {
+type Compresser interface {
 	CompressionFile([]os.FileInfo, string)
 	MakeFile(string)
 	AllCloser()
 }
 
-type Target interface {
-	MatchDefaultTarget(string) bool
-	MatchOptionTarget(string) bool
-	CheckTarget(string)
+type Matcher interface {
+	MatchDefaultTarget() bool
+	MatchOptionTarget() bool
+}
+
+type Target struct {
+	name string
 }
 
 type Fileio struct {
@@ -72,10 +75,10 @@ func (comfile *Fileio) MakeFile(create_file_name string) {
 	comfile.tw = tar.NewWriter(comfile.fileWriter)
 }
 
-func MatchDefaultTarget(name string) bool {
+func (target *Target) MatchDefaultTarget() bool {
 	for i, s := range default_except_targets {
 		default_Regexp := regexp.MustCompile(s)
-		if default_Regexp.MatchString(name) {
+		if default_Regexp.MatchString(target.name) {
 			default_except_targets = append(default_except_targets[:i], default_except_targets[i+1:]...)
 			return false
 		}
@@ -83,10 +86,10 @@ func MatchDefaultTarget(name string) bool {
 	return true
 }
 
-func MatchOptionTarget(name string) bool {
+func (target *Target)MatchOptionTarget() bool {
 	for _, s := range option_except_targets {
 		option_Regexp := regexp.MustCompile(s)
-		if option_Regexp.MatchString(name) {
+		if option_Regexp.MatchString(target.name) {
 			return true
 		}
 	}
@@ -105,8 +108,9 @@ func CheckTarget(dirpath string) {
 	}
 L:
 	for _, info := range beforecheck_fileinfo {
-		if MatchDefaultTarget(info.Name()) {
-			if MatchOptionTarget(info.Name()) {
+		var target *Target = &Target{info.Name()}
+		if target.MatchDefaultTarget() {
+			if target.MatchOptionTarget() {
 				continue L
 			}
 			if info.Mode()&os.ModeSymlink == os.ModeSymlink {
@@ -155,9 +159,9 @@ func (f *Fileio) CompressionFile(checked_fileinfo []os.FileInfo, dirname string)
 	)
 compress:
 	for _, infile := range checked_fileinfo {
+		var target *Target = &Target{filepath.Join(dirname, infile.Name())}
 		if infile.IsDir() {
-			target_name := filepath.Join(dirname, infile.Name())
-			if MatchOptionTarget(target_name) {
+			if target.MatchOptionTarget() {
 				continue compress
 			}
 			if tmp_fileinfo, err = ioutil.ReadDir(infile.Name()); err != nil {
@@ -181,7 +185,8 @@ compress:
 			tmp_fileinfo = nil
 		} else {
 			tmpname := filepath.Join(dirname, infile.Name())
-			if MatchOptionTarget(tmpname) {
+			target.name = tmpname
+			if target.MatchOptionTarget() {
 				continue compress
 			}
 			if infile.Mode()&os.ModeSymlink == os.ModeSymlink {

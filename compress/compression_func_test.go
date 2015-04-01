@@ -100,7 +100,7 @@ func TestMakeFile(t *testing.T) {
 	}
 	fileio.AllCloser()
 
-	var c Comp = &Fileio{}
+	var c Compresser = &Fileio{}
 	c.MakeFile(create_file_name)
 	c.AllCloser()
 	hostname, _ = os.Hostname()
@@ -109,34 +109,40 @@ func TestMakeFile(t *testing.T) {
 }
 
 func TestMatchDefaultTarget(t *testing.T) {
+	var target *Target = &Target{}
 	default_except_targets = strings.Fields(`^lost\+found$ ^proc$ ^sys$ ^dev$ ^mnt$ ^media$ ^run$ ^selinux$`)
 	str := strings.Fields("lost+found proc sys dev mnt media selinux run")
 	for _, s := range str {
-		if MatchDefaultTarget(s) {
-			t.Errorf("Match faild %s", s)
+		target.name = s
+		if target.MatchDefaultTarget() {
+			t.Errorf("Match faild %s", target.name)
 		}
 	}
 	default_except_targets = strings.Fields(`^lost\+found$ ^proc$ ^sys$ ^dev$ ^mnt$ ^media$ ^run$ ^selinux$ ^run$`)
 	str = strings.Fields("var etc lib lib64")
 	for _, s := range str {
-		if !MatchDefaultTarget(s) {
-			t.Errorf("Match faild %s", s)
+		target.name = s
+		if !target.MatchDefaultTarget() {
+			t.Errorf("Match faild %s", target.name)
 		}
 	}
 }
 
 func TestMatchOptionTarget(t *testing.T) {
+	var target *Target = &Target{}
 	str := strings.Fields("_old etc var src")
 	option_except_targets = strings.Fields("^_old$ ^etc$ ^var$ ^src$")
 	for _, s := range str {
-		if !MatchOptionTarget(s) {
-			t.Errorf("Match faild %s.", s)
+		target.name = s
+		if !target.MatchOptionTarget() {
+			t.Errorf("Match faild %s.", target.name)
 		}
 	}
 	str = strings.Fields("lost+found proc sys dev mnt media selinux run")
 	for _, s := range str {
-		if MatchOptionTarget(s) {
-			t.Errorf("Match faild %s", s)
+		target.name = s
+		if target.MatchOptionTarget() {
+			t.Errorf("Match faild %s", target.name)
 		}
 	}
 }
