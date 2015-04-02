@@ -50,7 +50,7 @@ func TestTargetMatch(t *testing.T) {
 	if !targetMatch(target) {
 		t.Errorf("Faild")
 	}
-	var fileio *Fileio = &Fileio{Target:target}
+	var fileio *Fileio = &Fileio{Target: target}
 	if !targetMatch(fileio) {
 		t.Errorf("Faild")
 	}
@@ -72,10 +72,9 @@ func TestSetMatcherName(t *testing.T) {
 	}
 
 	option_except_targets = strings.Fields("^root$")
-	//var fileio *Fileio = &Fileio{Target:target}
-	var fileio *Fileio = &Fileio{Target:&Target{}}
-	SetMatcherName(fileio, "root")
-	if !targetMatch(fileio) {
+	var f *Fileio = &Fileio{Target: &Target{}}
+	SetMatcherName(f, "root")
+	if !targetMatch(f) {
 		t.Errorf("Faild")
 	}
 }

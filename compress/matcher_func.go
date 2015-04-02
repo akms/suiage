@@ -44,7 +44,7 @@ func (target *Target) MatchOptionTarget() bool {
 	return false
 }
 
-func SetMatcherName(matcher Matcher,s string) {
+func SetMatcherName(matcher Matcher, s string) {
 	matcher.setMatcherName(s)
 }
 

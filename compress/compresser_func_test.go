@@ -7,35 +7,9 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
-	"strconv"
 	"strings"
 	"testing"
-	"time"
 )
-
-func NoNameMakeFile(file *os.File) (flag bool) {
-	var (
-		remove_filename              string
-		hostname                     string
-		year, day                    int
-		month                        time.Month
-		str_year, str_month, str_day string
-	)
-	hostname, _ = os.Hostname()
-	year, month, day = time.Now().Date()
-	str_year = strconv.Itoa(year)
-	str_month = strconv.Itoa(int(month))
-	str_day = strconv.Itoa(day)
-	hostname = "/mnt/" + hostname + "_" + str_year + "_" + str_month + "_" + str_day + ".tar.gz"
-	remove_filename = file.Name()
-	if hostname != remove_filename {
-		flag = false
-	} else {
-		flag = true
-	}
-	os.Remove(remove_filename)
-	return
-}
 
 func NamedMakeFile(file *os.File, create_file_name string) (flag bool) {
 	var (
@@ -60,23 +34,6 @@ func TestMakeFile(t *testing.T) {
 		create_file_name string
 		hostname         string
 	)
-
-	fileio.MakeFile("")
-
-	if fileio.fileWriter == nil {
-		t.Errorf("make faild 1st gzip writer.")
-	}
-	if fileio.tw == nil {
-		t.Errorf("make faild 1st tar writer.")
-	}
-	if fileio.file == nil {
-		t.Errorf("make faild 1st file.")
-	}
-
-	if !NoNameMakeFile(fileio.file) {
-		t.Errorf("got diff file name %s.", fileio.file.Name())
-	}
-	fileio.AllCloser()
 
 	hostname, _ = os.Hostname()
 	hostname = "/mnt/" + hostname

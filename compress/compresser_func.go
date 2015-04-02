@@ -9,8 +9,6 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"strconv"
-	"time"
 )
 
 type Compresser interface {
@@ -34,21 +32,15 @@ func (comfile *Fileio) AllCloser() {
 
 func (comfile *Fileio) MakeFile(create_file_name string) {
 	var (
-		hostname                     string
-		err                          error
-		year, day                    int
-		month                        time.Month
-		str_year, str_month, str_day string
+		hostname string
+		err      error
 	)
 	if hostname, err = os.Hostname(); err != nil {
 		log.Fatal(err)
 	}
 	if create_file_name == "" {
-		year, month, day = time.Now().Date()
-		str_year = strconv.Itoa(year)
-		str_month = strconv.Itoa(int(month))
-		str_day = strconv.Itoa(day)
-		hostname = "/mnt/" + hostname + "_" + str_year + "_" + str_month + "_" + str_day + ".tar.gz"
+		err = fmt.Errorf("create_file_name is nil")
+		log.Fatal(err)
 	} else {
 		hostname = "/mnt/" + hostname + "/" + create_file_name + ".tar.gz"
 	}

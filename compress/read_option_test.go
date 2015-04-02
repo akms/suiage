@@ -1,20 +1,20 @@
 package compress
 
 import (
+	"bufio"
 	"bytes"
 	"io"
+	"log"
 	"os"
 	"testing"
-	"log"
-	"bufio"
 )
 
 func MakeCopy() {
 	var (
-		buf           bytes.Buffer
-		copy_fileWriter io.WriteCloser
-		err error
-		origin_file,copy_file *os.File
+		buf                    bytes.Buffer
+		copy_fileWriter        io.WriteCloser
+		err                    error
+		origin_file, copy_file *os.File
 	)
 	origin_file, err = os.Open("/etc/suiage.conf")
 	if err != nil {
@@ -35,24 +35,24 @@ func MakeCopy() {
 func TestReadOption(t *testing.T) {
 	var (
 		read_strings []string
-		fchecker bool
+		fchecker     bool
 	)
-	
+
 	MakeCopy()
 	read_strings = ReadOption()
-	f ,_ := os.Open("/tmp/t_suiage.conf")
+	f, _ := os.Open("/tmp/t_suiage.conf")
 	defer f.Close()
 	scan := bufio.NewScanner(f)
 	for scan.Scan() {
 		s := scan.Text()
 		fchecker = false
-		for _,r := range read_strings {
+		for _, r := range read_strings {
 			if s == r {
 				fchecker = true
 			}
 		}
 		if !fchecker {
-			t.Errorf("can't find word %s",s)
+			t.Errorf("can't find word %s", s)
 		}
 	}
 	os.Remove("/tmp/t_suiage.conf")
@@ -60,5 +60,5 @@ func TestReadOption(t *testing.T) {
 	if workingDir != "/etc" {
 		t.Errorf("workingdir is not /etc. now workingdir is %s", workingDir)
 	}
-	
+
 }
