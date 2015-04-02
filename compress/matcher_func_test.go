@@ -59,3 +59,23 @@ func TestTargetMatch(t *testing.T) {
 		t.Errorf("Faild")
 	}
 }
+
+func TestSetMatcherName(t *testing.T) {
+	var target *Target = &Target{"_old"}
+
+	if target.name != "_old" {
+		t.Errorf("Faild")
+	}
+	target.setMatcherName("etc")
+	if target.name != "etc" {
+		t.Errorf("Faild")
+	}
+
+	option_except_targets = strings.Fields("^root$")
+	//var fileio *Fileio = &Fileio{Target:target}
+	var fileio *Fileio = &Fileio{Target:&Target{}}
+	SetMatcherName(fileio, "root")
+	if !targetMatch(fileio) {
+		t.Errorf("Faild")
+	}
+}

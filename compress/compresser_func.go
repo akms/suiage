@@ -70,8 +70,9 @@ func (f *Fileio) CompressionFile(checked_fileinfo []os.FileInfo, dirname string)
 compress:
 	for _, infile := range checked_fileinfo {
 		var target *Target = &Target{filepath.Join(dirname, infile.Name())}
+		f.Target = target
 		if infile.IsDir() {
-			if target.MatchOptionTarget() {
+			if targetMatch(f) {
 				continue compress
 			}
 			if tmp_fileinfo, err = ioutil.ReadDir(infile.Name()); err != nil {
@@ -81,6 +82,7 @@ compress:
 			hdr, _ := tar.FileInfoHeader(infile, "")
 			hdr.Typeflag = tar.TypeDir
 			hdr.Name = tmpname
+			fmt.Println(tmpname)
 			if err = f.tw.WriteHeader(hdr); err != nil {
 				fmt.Printf("write faild header Dir %s\n", tmpname)
 				log.Fatal(err)
@@ -95,8 +97,8 @@ compress:
 			tmp_fileinfo = nil
 		} else {
 			tmpname := filepath.Join(dirname, infile.Name())
-			target.name = tmpname
-			if target.MatchOptionTarget() {
+			SetMatcherName(f, tmpname)
+			if targetMatch(f) {
 				continue compress
 			}
 			if infile.Mode()&os.ModeSymlink == os.ModeSymlink {
@@ -104,6 +106,7 @@ compress:
 				hdr, _ := tar.FileInfoHeader(infile, evalsym)
 				hdr.Typeflag = tar.TypeSymlink
 				hdr.Name = tmpname
+				fmt.Println(tmpname)
 				if err = f.tw.WriteHeader(hdr); err != nil {
 					fmt.Printf("write faild header symlink %s\n", tmpname)
 					log.Fatal(err)
@@ -113,6 +116,7 @@ compress:
 				hdr, _ := tar.FileInfoHeader(infile, "")
 				hdr.Typeflag = tar.TypeReg
 				hdr.Name = tmpname
+				fmt.Println(tmpname)
 				if err = f.tw.WriteHeader(hdr); err != nil {
 					fmt.Printf("write faild header %s\n", tmpname)
 					log.Fatal(err)

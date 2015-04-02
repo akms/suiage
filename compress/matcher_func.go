@@ -1,7 +1,6 @@
 package compress
 
 import (
-	"fmt"
 	"regexp"
 	"strings"
 )
@@ -9,6 +8,7 @@ import (
 type Matcher interface {
 	MatchDefaultTarget() bool
 	MatchOptionTarget() bool
+	setMatcherName(string)
 }
 
 type Target struct {
@@ -18,6 +18,10 @@ type Target struct {
 var (
 	default_except_targets, option_except_targets []string = strings.Fields(`^lost\+found$ ^proc$ ^sys$ ^dev$ ^mnt$ ^media$ ^run$ ^selinux$ ^boot$ ^_old$`), ReadOption()
 )
+
+func (target *Target) setMatcherName(s string) {
+	target.name = s
+}
 
 func (target *Target) MatchDefaultTarget() bool {
 	for i, s := range default_except_targets {
@@ -40,13 +44,15 @@ func (target *Target) MatchOptionTarget() bool {
 	return false
 }
 
+func SetMatcherName(matcher Matcher,s string) {
+	matcher.setMatcherName(s)
+}
+
 func targetMatch(matcher Matcher) bool {
 	if !matcher.MatchDefaultTarget() {
-		fmt.Println("Target match default")
 		return true
 	}
 	if matcher.MatchOptionTarget() {
-		fmt.Println("Target match option")
 		return true
 	}
 	return false
