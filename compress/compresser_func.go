@@ -24,13 +24,13 @@ type Fileio struct {
 	*Target
 }
 
-func (comfile *Fileio) AllCloser() {
-	defer comfile.file.Close()
-	defer comfile.fileWriter.Close()
-	defer comfile.tw.Close()
+func (f *Fileio) AllCloser() {
+	defer f.file.Close()
+	defer f.fileWriter.Close()
+	defer f.tw.Close()
 }
 
-func (comfile *Fileio) MakeFile(create_file_name string) {
+func (f *Fileio) MakeFile(create_file_name string) {
 	var (
 		hostname string
 		err      error
@@ -44,13 +44,13 @@ func (comfile *Fileio) MakeFile(create_file_name string) {
 	} else {
 		hostname = "/mnt/" + hostname + "/" + create_file_name + ".tar.gz"
 	}
-	if comfile.file, err = os.Create(hostname); err != nil {
+	if f.file, err = os.Create(hostname); err != nil {
 		log.Fatal(err)
 	}
 	fmt.Println(hostname)
-	comfile.fileWriter = comfile.file
-	comfile.fileWriter = gzip.NewWriter(comfile.file)
-	comfile.tw = tar.NewWriter(comfile.fileWriter)
+	f.fileWriter = f.file
+	f.fileWriter = gzip.NewWriter(f.file)
+	f.tw = tar.NewWriter(f.fileWriter)
 }
 
 func (f *Fileio) CompressionFile(checked_fileinfo []os.FileInfo, dirname string) {
