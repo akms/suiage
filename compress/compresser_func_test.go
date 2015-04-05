@@ -5,13 +5,13 @@ import (
 	"bytes"
 	"compress/gzip"
 	"io"
-	"io/ioutil"
 	"os"
 	"strings"
 	"testing"
+	"time"
 )
 
-func NamedMakeFile(file *os.File, create_file_name string) (flag bool) {
+func CheckedMakeFile(file *os.File, create_file_name string) (flag bool) {
 	var (
 		remove_filename string
 		hostname        string
@@ -52,7 +52,7 @@ func TestMakeFile(t *testing.T) {
 		t.Errorf("make faild 2nd file.")
 	}
 
-	if !NamedMakeFile(fileio.file, create_file_name) {
+	if !CheckedMakeFile(fileio.file, create_file_name) {
 		t.Errorf("got diff file name %s.", fileio.file.Name())
 	}
 	fileio.AllCloser()
@@ -60,28 +60,47 @@ func TestMakeFile(t *testing.T) {
 	var c Compresser = &Fileio{}
 	c.MakeFile(create_file_name)
 	c.AllCloser()
+	hostname = hostname + "/etc.tar.gz"
+	os.Remove(hostname)
 	hostname, _ = os.Hostname()
 	hostname = "/mnt/" + hostname
 	os.Remove(hostname)
 }
 
+type MockFile struct {
+	name  string
+	size  int64
+	isdir bool
+}
+
+func (mock *MockFile) Name() string {
+	return mock.name
+}
+func (mock *MockFile) Size() int64 {
+	return mock.size
+}
+func (mock *MockFile) Mode() os.FileMode {
+	return os.ModePerm
+}
+func (mock *MockFile) ModTime() time.Time {
+	return time.Now()
+}
+func (mock *MockFile) IsDir() bool {
+	return mock.isdir
+}
+func (mock *MockFile) Sys() interface{} {
+	return nil
+}
+
 func tmpWrite() {
 	var (
-		file             *os.File
-		fileio           *Fileio = &Fileio{}
-		checked_fileinfo []os.FileInfo
+		fileio           *Fileio = &Fileio{}		
+		mockfile *MockFile = &MockFile{name: "test.txt", size: 0, isdir: false}
+		mockgfile *MockFile = &MockFile{name: "gtest.txt", size: 9894688000, isdir: false}
+		mocks = []os.FileInfo {mockfile,mockgfile}
 	)
-	ChangeDir("/tmp")
-	os.Mkdir("comp_test", os.ModePerm)
-	ChangeDir("comp_test")
-	file, _ = os.Create("test.txt")
-	defer file.Close()
-
-	ChangeDir("/tmp")
-	checked_fileinfo, _ = ioutil.ReadDir("comp_test")
 	fileio.MakeFile("comp_test")
-	ChangeDir("/tmp/comp_test")
-	fileio.CompressionFile(checked_fileinfo, "comp_test")
+	fileio.CompressionFile(mocks, "comp_test")
 	fileio.AllCloser()
 }
 
@@ -101,7 +120,6 @@ func TestCompressionFile(t *testing.T) {
 	option_except_targets = strings.Fields(`^lost\+found$ ^proc$ ^sys$ ^dev$ ^mnt$ ^media$ ^run$ ^selinux$ ^tmp$ ^_old$ ^boot$ ^opt$ ^root$ ^sbin$ ^etc$ ^var$ ^home$ ^srv$`)
 
 	tmpWrite()
-
 	//以下今回のテストの目的である.tar.gzファイルの読み込み
 
 	remove_filename = hostname + "/comp_test.tar.gz"
@@ -127,12 +145,10 @@ func TestCompressionFile(t *testing.T) {
 			t.Errorf("Can't read hdr %s\n", err)
 			break
 		}
-		if hdr.Name != "comp_test/test.txt" {
+		if hdr.Name != "comp_test/test.txt" && hdr.Name != "comp_test/gtest.txt"{
 			t.Errorf("want comp_test/test.txt. got :%s\n", hdr.Name)
 		}
 	}
 	os.Remove(remove_filename)
-	os.Remove("/tmp/comp_test/test.txt")
-	os.Remove("/tmp/comp_test")
 	os.Remove(hostname)
 }
