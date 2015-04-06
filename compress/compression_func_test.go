@@ -93,7 +93,7 @@ func TestCompression(t *testing.T) {
 				t.Errorf("Can't read hdr %s\n", err)
 				break
 			}
-			if hdr.Name != "test/hoge.txt" && hdr.Name != "test2" && hdr.Name != "test3/" {
+			if hdr.Name != "test/hoge.txt" && hdr.Name != "test2" && hdr.Name != "test3/.gitkeep" {
 				t.Errorf("Faild got :%s\n", hdr.Name)
 			}
 		}
