@@ -8,8 +8,33 @@ import (
 	"os"
 	"strings"
 	"testing"
-	"time"
 )
+
+type MockFile struct {
+	name  string
+	size  int64
+	isdir bool
+	mode  os.FileMode
+}
+
+func (mock *MockFile) Name() string {
+	return mock.name
+}
+func (mock *MockFile) Size() int64 {
+	return mock.size
+}
+func (mock *MockFile) Mode() os.FileMode {
+	return mock.mode
+}
+func (mock *MockFile) ModTime() time.Time {
+	return time.Now()
+}
+func (mock *MockFile) IsDir() bool {
+	return mock.isdir
+}
+func (mock *MockFile) Sys() interface{} {
+	return nil
+}
 
 func CheckedMakeFile(file *os.File, create_file_name string) (flag bool) {
 	var (
@@ -63,36 +88,12 @@ func TestMakeFile(t *testing.T) {
 	os.Remove(hostname)
 }
 
-type MockFile struct {
-	name  string
-	size  int64
-	isdir bool
-}
-
-func (mock *MockFile) Name() string {
-	return mock.name
-}
-func (mock *MockFile) Size() int64 {
-	return mock.size
-}
-func (mock *MockFile) Mode() os.FileMode {
-	return os.ModePerm
-}
-func (mock *MockFile) ModTime() time.Time {
-	return time.Now()
-}
-func (mock *MockFile) IsDir() bool {
-	return mock.isdir
-}
-func (mock *MockFile) Sys() interface{} {
-	return nil
-}
-
 func tmpWrite() {
 	var (
 		fileio           *Fileio = &Fileio{}		
-		mockfile *MockFile = &MockFile{name: "test.txt", size: 0, isdir: false}
-		mockgfile *MockFile = &MockFile{name: "gtest.txt", size: 9894688000, isdir: false}
+		//*MockFileの定義はcompression_func_test.goにある
+		mockfile *MockFile = &MockFile{name: "test.txt", size: 0, isdir: false, mode: os.ModePerm}
+		mockgfile *MockFile = &MockFile{name: "gtest.txt", size: 9894688000, isdir: false, mode:os.ModePerm}
 		mocks = []os.FileInfo {mockfile,mockgfile}
 	)
 	fileio.MakeFile("comp_test")

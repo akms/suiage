@@ -8,18 +8,15 @@ import (
 	"os"
 )
 
-func CheckTarget(dirpath string) {
+func Compression(beforecheck_fileinfo []os.FileInfo, dirpath string) {
 
 	var (
-		beforecheck_fileinfo, checked_fileinfo []os.FileInfo
-		err                                    error
-		comfile                                *Fileio = &Fileio{Target: &Target{}}
+		checked_fileinfo []os.FileInfo
+		err              error
+		comfile          *Fileio = &Fileio{Target: &Target{}}
 	)
 
 	ChangeDir(dirpath)
-	if beforecheck_fileinfo, err = ioutil.ReadDir(dirpath); err != nil {
-		log.Fatal(err)
-	}
 
 L:
 	for _, info := range beforecheck_fileinfo {
