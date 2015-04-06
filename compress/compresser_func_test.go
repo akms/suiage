@@ -6,9 +6,32 @@ import (
 	"compress/gzip"
 	"io"
 	"os"
+	"os/exec"
 	"strings"
 	"testing"
 )
+
+func TestAllCloser(t *testing.T) {
+	var (
+		f        *Fileio = &Fileio{}
+		gopath   string
+		mockfile *MockFile = &MockFile{name: "test.txt", size: 0, isdir: false, mode: os.ModePerm}
+	)
+	
+	o, _ := exec.Command(os.Getenv("SHELL"), "-c", "echo $GOPATH").Output()
+	gopath = string(o)
+	gopath = strings.TrimRight(gopath, "\n")
+	gopath = gopath + "/src/suiage/compress/test/test.txt"
+	f.file, _ = os.Open(gopath)
+	f.fileWriter = gzip.NewWriter(f.file)
+	f.tw = tar.NewWriter(f.fileWriter)
+	f.AllCloser()
+	hdr, _ := tar.FileInfoHeader(mockfile, "")
+	if err := f.tw.WriteHeader(hdr); err == nil {
+		t.Errorf("%s\n", err)
+	}
+
+}
 
 func CheckedMakeFile(file *os.File, create_file_name string) (flag bool) {
 	var (
@@ -64,11 +87,11 @@ func TestMakeFile(t *testing.T) {
 
 func tmpWrite() {
 	var (
-		fileio           *Fileio = &Fileio{}		
+		fileio *Fileio = &Fileio{}
 		//*MockFileの定義はcompression_func_test.goにある
-		mockfile *MockFile = &MockFile{name: "test.txt", size: 0, isdir: false, mode: os.ModePerm}
-		mockgfile *MockFile = &MockFile{name: "gtest.txt", size: 9894688000, isdir: false, mode:os.ModePerm}
-		mocks = []os.FileInfo {mockfile,mockgfile}
+		mockfile  *MockFile = &MockFile{name: "test.txt", size: 0, isdir: false, mode: os.ModePerm}
+		mockgfile *MockFile = &MockFile{name: "gtest.txt", size: 9894688000, isdir: false, mode: os.ModePerm}
+		mocks               = []os.FileInfo{mockfile, mockgfile}
 	)
 	fileio.MakeFile("comp_test")
 	fileio.CompressionFile(mocks, "comp_test")
@@ -116,7 +139,7 @@ func TestCompressionFile(t *testing.T) {
 			t.Errorf("Can't read hdr %s\n", err)
 			break
 		}
-		if hdr.Name != "comp_test/test.txt" && hdr.Name != "comp_test/gtest.txt"{
+		if hdr.Name != "comp_test/test.txt" && hdr.Name != "comp_test/gtest.txt" {
 			t.Errorf("want comp_test/test.txt. got :%s\n", hdr.Name)
 		}
 	}

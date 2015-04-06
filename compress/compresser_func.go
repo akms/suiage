@@ -48,7 +48,6 @@ func (f *Fileio) MakeFile(create_file_name string) {
 		log.Fatal(err)
 	}
 	fmt.Println(hostname)
-	f.fileWriter = f.file
 	f.fileWriter = gzip.NewWriter(f.file)
 	f.tw = tar.NewWriter(f.fileWriter)
 }

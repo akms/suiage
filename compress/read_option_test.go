@@ -56,9 +56,4 @@ func TestReadOption(t *testing.T) {
 		}
 	}
 	os.Remove("/tmp/t_suiage.conf")
-	workingDir, _ := os.Getwd()
-	if workingDir != "/etc" {
-		t.Errorf("workingdir is not /etc. now workingdir is %s", workingDir)
-	}
-
 }
