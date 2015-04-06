@@ -56,10 +56,6 @@ func TestMakeFile(t *testing.T) {
 		t.Errorf("got diff file name %s.", fileio.file.Name())
 	}
 	fileio.AllCloser()
-
-	var c Compresser = &Fileio{}
-	c.MakeFile(create_file_name)
-	c.AllCloser()
 	hostname = hostname + "/etc.tar.gz"
 	os.Remove(hostname)
 	hostname, _ = os.Hostname()
