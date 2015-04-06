@@ -53,13 +53,13 @@ func TestCompression(t *testing.T) {
 	)
 	hostname, _ = os.Hostname()
 	hostname = "/mnt/" + hostname
-	if _, err := os.Stat(hostname); err != nil {
+	if _, err = os.Stat(hostname); err != nil {
 		if err = os.Mkdir(hostname, os.ModePerm); err != nil {
 			t.Errorf("can't start test")
 		}
 	}
 	//GOPATHをとるための悪手
-	o, _ := exec.Command(os.Getenv("SHELL"), "-c", "echo $GOPATH").Output()
+	o, err := exec.Command(os.Getenv("SHELL"), "-c", "echo $GOPATH").Output()
 	gopath = string(o)
 	//stringsのTrimRightでchompのような動作
 	gopath = strings.TrimRight(gopath, "\n")
