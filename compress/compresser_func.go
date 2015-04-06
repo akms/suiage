@@ -101,7 +101,7 @@ compress:
 			} else {
 				body, _ := ioutil.ReadFile(infile.Name())
 				hdr, _ := tar.FileInfoHeader(infile, "")
-				hdr.Typeflag = tar.TypeRegA
+				hdr.Typeflag = tar.TypeReg
 				hdr.Name = tmpname
 				fmt.Println(tmpname)
 				if err = f.tw.WriteHeader(hdr); err != nil {
