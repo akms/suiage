@@ -2,13 +2,15 @@ package compress
 
 import (
 	"os"
+	"os/exec"
+	"strings"
 	"testing"
 )
 
 func TestChangeDir(t *testing.T) {
-	var dirPath,gopath string
+	var dirPath, gopath string
 	//GOPATHをとるための悪手
-	o, err := exec.Command(os.Getenv("SHELL"), "-c", "echo $GOPATH").Output()
+	o, _ := exec.Command(os.Getenv("SHELL"), "-c", "echo $GOPATH").Output()
 	gopath = string(o)
 	//stringsのTrimRightでchompのような動作
 	gopath = strings.TrimRight(gopath, "\n")

@@ -59,7 +59,7 @@ func TestCompression(t *testing.T) {
 		}
 	}
 	//GOPATHをとるための悪手
-	o, err := exec.Command(os.Getenv("SHELL"), "-c", "echo $GOPATH").Output()
+	o, _ := exec.Command(os.Getenv("SHELL"), "-c", "echo $GOPATH").Output()
 	gopath = string(o)
 	//stringsのTrimRightでchompのような動作
 	gopath = strings.TrimRight(gopath, "\n")
