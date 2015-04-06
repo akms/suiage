@@ -8,34 +8,7 @@ import (
 	"os"
 	"strings"
 	"testing"
-	"time"
 )
-
-type MockFile struct {
-	name  string
-	size  int64
-	isdir bool
-	mode  os.FileMode
-}
-
-func (mock *MockFile) Name() string {
-	return mock.name
-}
-func (mock *MockFile) Size() int64 {
-	return mock.size
-}
-func (mock *MockFile) Mode() os.FileMode {
-	return mock.mode
-}
-func (mock *MockFile) ModTime() time.Time {
-	return time.Now()
-}
-func (mock *MockFile) IsDir() bool {
-	return mock.isdir
-}
-func (mock *MockFile) Sys() interface{} {
-	return nil
-}
 
 func CheckedMakeFile(file *os.File, create_file_name string) (flag bool) {
 	var (
