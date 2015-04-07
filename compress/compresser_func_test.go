@@ -4,6 +4,7 @@ import (
 	"archive/tar"
 	"bytes"
 	"compress/gzip"
+	"fmt"
 	"io"
 	"os"
 	"os/exec"
@@ -17,7 +18,7 @@ func TestAllCloser(t *testing.T) {
 		gopath   string
 		mockfile *MockFile = &MockFile{name: "test.txt", size: 0, isdir: false, mode: os.ModePerm}
 	)
-	
+
 	o, _ := exec.Command(os.Getenv("SHELL"), "-c", "echo $GOPATH").Output()
 	gopath = string(o)
 	gopath = strings.TrimRight(gopath, "\n")
@@ -28,6 +29,7 @@ func TestAllCloser(t *testing.T) {
 	f.AllCloser()
 	hdr, _ := tar.FileInfoHeader(mockfile, "")
 	if err := f.tw.WriteHeader(hdr); err == nil {
+		err = fmt.Errorf("All close faild")
 		t.Errorf("%s\n", err)
 	}
 
