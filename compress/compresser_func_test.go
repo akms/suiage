@@ -91,8 +91,10 @@ func tmpWrite() {
 	var (
 		fileio *Fileio = &Fileio{}
 		//*MockFileの定義はcompression_func_test.goにある
-		mockfile  *MockFile = &MockFile{name: "test.txt", size: 0, isdir: false, mode: os.ModePerm}
-		mockgfile *MockFile = &MockFile{name: "gtest.txt", size: 9894688000, isdir: false, mode: os.ModePerm}
+		//mockfile  *MockFile = &MockFile{name: "test.txt", size: 0, isdir: false, mode: os.ModePerm}
+		//mockgfile *MockFile = &MockFile{name: "gtest.txt", size: 9894688000, isdir: false, mode: os.ModePerm}
+		mockfile  os.FileInfo = &MockFile{name: "test.txt", size: 0, isdir: false, mode: os.ModePerm}
+		mockgfile os.FileInfo = &MockFile{name: "gtest.txt", size: 9894688000, isdir: false, mode: os.ModePerm}
 		mocks               = []os.FileInfo{mockfile, mockgfile}
 	)
 	fileio.MakeFile("comp_test")
