@@ -66,6 +66,7 @@ compress:
 		if targetMatch(f) {
 			continue compress
 		}
+		fmt.Println(tmpname)
 		if infile.IsDir() {
 			if tmp_fileinfo, err = ioutil.ReadDir(infile.Name()); err != nil {
 				log.Fatal(err)
@@ -102,7 +103,6 @@ compress:
 				hdr, _ := tar.FileInfoHeader(infile, "")
 				hdr.Typeflag = tar.TypeReg
 				hdr.Name = tmpname
-				fmt.Println(tmpname)
 				if err = f.tw.WriteHeader(hdr); err != nil {
 					fmt.Printf("write faild header %s\n", tmpname)
 					log.Fatal(err)

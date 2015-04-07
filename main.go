@@ -1,9 +1,9 @@
 package main
 
 import (
+	"io/ioutil"
 	"log"
 	"os"
-	"io/ioutil"
 	"suiage/compress"
 	//"github.com/akms/suiage/compress"
 )
