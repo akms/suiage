@@ -1,9 +1,6 @@
 package compress
 
 import (
-	"os"
-	"os/exec"
-	"strings"
 	"testing"
 )
 
@@ -14,9 +11,8 @@ func TestReadOption(t *testing.T) {
 		fchecker         bool
 		gopath, fullpath string
 	)
-	o, _ := exec.Command(os.Getenv("SHELL"), "-c", "echo $GOPATH").Output()
-	gopath = string(o)
-	gopath = strings.TrimRight(gopath, "\n")
+
+	gopath = getGopath()
 	fullpath = gopath + "/src/suiage/compress/test/suiage.conf"
 	
 	if _, err := ReadOption("/etc/sugiage.conf");err == nil {

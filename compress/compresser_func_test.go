@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"os/exec"
 	"strings"
 	"testing"
 )
@@ -19,9 +18,7 @@ func TestAllCloser(t *testing.T) {
 		mockfile *MockFile = &MockFile{name: "test.txt", size: 0, isdir: false, mode: os.ModePerm}
 	)
 
-	o, _ := exec.Command(os.Getenv("SHELL"), "-c", "echo $GOPATH").Output()
-	gopath = string(o)
-	gopath = strings.TrimRight(gopath, "\n")
+	gopath = getGopath()
 	gopath = gopath + "/src/suiage/compress/test/test.txt"
 	f.file, _ = os.Open(gopath)
 	f.fileWriter = gzip.NewWriter(f.file)

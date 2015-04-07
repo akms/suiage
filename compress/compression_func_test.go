@@ -6,8 +6,6 @@ import (
 	"compress/gzip"
 	"io"
 	"os"
-	"os/exec"
-	"strings"
 	"testing"
 	"time"
 )
@@ -58,11 +56,7 @@ func TestCompression(t *testing.T) {
 			t.Errorf("can't start test")
 		}
 	}
-	//GOPATHをとるための悪手
-	o, _ := exec.Command(os.Getenv("SHELL"), "-c", "echo $GOPATH").Output()
-	gopath = string(o)
-	//stringsのTrimRightでchompのような動作
-	gopath = strings.TrimRight(gopath, "\n")
+	gopath = getGopath()
 	dirpath = gopath + "/src/suiage/compress/test"
 	ChangeDir(dirpath)
 	Compression(mocks, dirpath)
