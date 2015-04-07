@@ -2,8 +2,10 @@ package compress
 
 import (
 	"bufio"
+	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 )
 
 func FileExists(filename string) bool {
@@ -14,10 +16,19 @@ func FileExists(filename string) bool {
 	return true
 }
 
-func ReadOption() (lines []string) {
-	ChangeDir("/etc")
-	if FileExists("suiage.conf") {
-		infile_options, err := os.Open("suiage.conf")
+func ReadOption(fullpath string) (lines []string, err error) {
+	var (
+		dirpath, filename string
+	)
+	dirpath, filename = filepath.Split(fullpath)
+	ChangeDir(dirpath)
+	if filename != "suiage.conf" {
+		err = fmt.Errorf("file name is not suiage.conf got %s", filename)
+		lines = make([]string, 0, 0)
+		return
+	}
+	if FileExists(filename) {
+		infile_options, err := os.Open(filename)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -30,7 +41,7 @@ func ReadOption() (lines []string) {
 		if serr := scanner.Err(); serr != nil {
 			log.Fatal(serr)
 		}
-		return
+		return lines,err
 	} else {
 		lines = make([]string, 0, 0)
 		return
