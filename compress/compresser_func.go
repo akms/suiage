@@ -56,15 +56,19 @@ func (f *Fileio) MakeFile(create_file_name string) {
 
 func (f *Fileio) CompressionFile(checked_fileinfo []os.FileInfo, dirname string) {
 	var (
-		err            error
-		tmp_fileinfo   []os.FileInfo
-		change_dirpath string
-		body           []byte
+		err                     error
+		tmp_fileinfo            []os.FileInfo
+		change_dirpath, tmpname string
+		body                    []byte
+		infile                  os.FileInfo
+		hdr                     *tar.Header
 	)
 	f.Target = &Target{}
+
 compress:
-	for _, infile := range checked_fileinfo {
-		tmpname := filepath.Join(dirname, infile.Name())
+	for _, infile = range checked_fileinfo {
+		runtime.GC()
+		tmpname = filepath.Join(dirname, infile.Name())
 		SetMatcherName(f, tmpname)
 		if targetMatch(f) {
 			continue compress
@@ -74,7 +78,7 @@ compress:
 			if tmp_fileinfo, err = ioutil.ReadDir(infile.Name()); err != nil {
 				log.Fatal(err)
 			}
-			hdr, _ := tar.FileInfoHeader(infile, "")
+			hdr, _ = tar.FileInfoHeader(infile, "")
 			hdr.Typeflag = tar.TypeDir
 			hdr.Name = tmpname
 			if err = f.tw.WriteHeader(hdr); err != nil {
@@ -92,7 +96,7 @@ compress:
 		} else {
 			if infile.Mode()&os.ModeSymlink == os.ModeSymlink {
 				evalsym, _ := os.Readlink(infile.Name())
-				hdr, _ := tar.FileInfoHeader(infile, evalsym)
+				hdr, _ = tar.FileInfoHeader(infile, evalsym)
 				hdr.Typeflag = tar.TypeSymlink
 				hdr.Name = tmpname
 				if err = f.tw.WriteHeader(hdr); err != nil {
@@ -100,13 +104,17 @@ compress:
 					log.Fatal(err)
 				}
 			} else {
-				hdr, _ := tar.FileInfoHeader(infile, "")
+				hdr, _ = tar.FileInfoHeader(infile, "")
 				hdr.Typeflag = tar.TypeReg
 				hdr.Name = tmpname
 				fmt.Println(hdr.Size)
 				b := hdr.Size + bytes.MinRead
 				body = make([]byte, 0, b)
-				body, _ = ioutil.ReadFile(infile.Name())
+				log.Println(runtime.NumGoroutine())
+				body, err = ioutil.ReadFile(infile.Name())
+				if err != nil {
+					log.Fatal(err)
+				}
 				fmt.Println(len(body))
 				if err = f.tw.WriteHeader(hdr); err != nil {
 					fmt.Printf("write faild header %s\n", tmpname)
@@ -115,7 +123,6 @@ compress:
 				if body != nil {
 					f.tw.Write(body)
 				}
-				runtime.GC()
 			}
 		}
 	}

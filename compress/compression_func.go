@@ -15,7 +15,7 @@ func Compression(beforecheck_fileinfo []os.FileInfo, dirpath string) {
 		err              error
 		comfile          *Fileio = &Fileio{Target: &Target{}}
 	)
-
+	
 	ChangeDir(dirpath)
 
 L:

@@ -2,6 +2,7 @@ package compress
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
 	"log"
 	"os"
@@ -9,7 +10,8 @@ import (
 )
 
 func FileExists(filename string) bool {
-	_, err := os.Stat(filename)
+	var err error
+	_, err = os.Stat(filename)
 	if err != nil {
 		return false
 	}
@@ -19,6 +21,10 @@ func FileExists(filename string) bool {
 func ReadOption(fullpath string) (lines []string, err error) {
 	var (
 		dirpath, filename string
+		infile_options    *os.File
+		fi                os.FileInfo
+		size, n           int64
+		serr              error
 	)
 	dirpath, filename = filepath.Split(fullpath)
 	ChangeDir(dirpath)
@@ -28,20 +34,25 @@ func ReadOption(fullpath string) (lines []string, err error) {
 		return
 	}
 	if FileExists(filename) {
-		infile_options, err := os.Open(filename)
+		infile_options, err = os.Open(filename)
 		if err != nil {
 			log.Fatal(err)
 		}
 		defer infile_options.Close()
-		lines = make([]string, 0, 100)
+		if fi, err = infile_options.Stat(); err == nil {
+			if size = fi.Size(); size < 1e9 {
+				n = size + bytes.MinRead
+			}
+		}
+		lines = make([]string, 0, n)
 		scanner := bufio.NewScanner(infile_options)
 		for scanner.Scan() {
 			lines = append(lines, scanner.Text())
 		}
-		if serr := scanner.Err(); serr != nil {
+		if serr = scanner.Err(); serr != nil {
 			log.Fatal(serr)
 		}
-		return lines,err
+		return lines, err
 	} else {
 		lines = make([]string, 0, 0)
 		return
