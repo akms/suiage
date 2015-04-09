@@ -9,6 +9,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"runtime"
 )
 
 type Compresser interface {
@@ -108,7 +109,10 @@ compress:
 				fmt.Println(hdr.Typeflag)
 				fmt.Println(hdr.Size)
 				body = make([]byte, 0, hdr.Size)
-				body, _ = ioutil.ReadFile(infile.Name())
+				body, err = ioutil.ReadFile(infile.Name())
+				if err != nil {
+					log.Fatal(err)
+				}
 				fmt.Println(len(body))
 				if err = f.tw.WriteHeader(hdr); err != nil {
 					fmt.Printf("write faild header %s\n", tmpname)
@@ -117,6 +121,7 @@ compress:
 				if body != nil {
 					f.tw.Write(body)
 				}
+				runtime.GC()
 			}
 		}
 	}
