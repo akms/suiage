@@ -10,7 +10,6 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	//"runtime"
 )
 
 type Compresser interface {
@@ -59,11 +58,12 @@ func (f *Fileio) CompressionFile(checked_fileinfo []os.FileInfo, dirname string)
 		err                     error
 		tmp_fileinfo            []os.FileInfo
 		change_dirpath, tmpname string
-		//body                    []byte
-		body                    *bytes.Buffer
+		buf                     *bytes.Buffer
 		infile                  os.FileInfo
 		hdr                     *tar.Header
-		file *os.File
+		file                    *os.File
+		size                    int64
+		//body                    []byte
 	)
 	f.Target = &Target{}
 compress:
@@ -111,24 +111,25 @@ compress:
 				hdr.Typeflag = tar.TypeReg
 				hdr.Name = tmpname
 				fmt.Println(hdr.Size)
-				b := hdr.Size + bytes.MinRead
-				body = bytes.NewBuffer(make([]byte, 0, b))
+				size = hdr.Size + bytes.MinRead
+				buf = bytes.NewBuffer(make([]byte, 0, size))
 				//body, err = ioutil.ReadFile(infile.Name())
 				file, err = os.Open(infile.Name())
 				if err != nil {
 					log.Fatal(err)
 				}
-				_,err = io.Copy(body,file)
+				defer file.Close()
+				_, err = io.Copy(buf, file)
 				if err != nil {
 					log.Fatal(err)
 				}
-				fmt.Println(len(body.Bytes()))
+				fmt.Println(len(buf.Bytes()))
 				if err = f.tw.WriteHeader(hdr); err != nil {
 					fmt.Printf("write faild header %s\n", tmpname)
 					log.Fatal(err)
 				}
-				if body != nil {
-					f.tw.Write(body.Bytes())
+				if buf != nil {
+					f.tw.Write(buf.Bytes())
 				}
 			}
 		}
