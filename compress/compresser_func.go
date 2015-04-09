@@ -10,7 +10,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"runtime"
+	//"runtime"
 )
 
 type Compresser interface {
@@ -59,15 +59,15 @@ func (f *Fileio) CompressionFile(checked_fileinfo []os.FileInfo, dirname string)
 		err                     error
 		tmp_fileinfo            []os.FileInfo
 		change_dirpath, tmpname string
-		body                    []byte
+		//body                    []byte
+		body                    *bytes.Buffer
 		infile                  os.FileInfo
 		hdr                     *tar.Header
+		file *os.File
 	)
 	f.Target = &Target{}
-
 compress:
 	for _, infile = range checked_fileinfo {
-		runtime.GC()
 		tmpname = filepath.Join(dirname, infile.Name())
 		SetMatcherName(f, tmpname)
 		if targetMatch(f) {
@@ -94,6 +94,9 @@ compress:
 			ChangeDir(change_dirpath)
 			tmp_fileinfo = nil
 		} else {
+			if infile.Mode()&os.ModeSocket == os.ModeSocket {
+				continue compress
+			}
 			if infile.Mode()&os.ModeSymlink == os.ModeSymlink {
 				evalsym, _ := os.Readlink(infile.Name())
 				hdr, _ = tar.FileInfoHeader(infile, evalsym)
@@ -109,19 +112,23 @@ compress:
 				hdr.Name = tmpname
 				fmt.Println(hdr.Size)
 				b := hdr.Size + bytes.MinRead
-				body = make([]byte, 0, b)
-				log.Println(runtime.NumGoroutine())
-				body, err = ioutil.ReadFile(infile.Name())
+				body = bytes.NewBuffer(make([]byte, 0, b))
+				//body, err = ioutil.ReadFile(infile.Name())
+				file, err = os.Open(infile.Name())
 				if err != nil {
 					log.Fatal(err)
 				}
-				fmt.Println(len(body))
+				_,err = io.Copy(body,file)
+				if err != nil {
+					log.Fatal(err)
+				}
+				fmt.Println(len(body.Bytes()))
 				if err = f.tw.WriteHeader(hdr); err != nil {
 					fmt.Printf("write faild header %s\n", tmpname)
 					log.Fatal(err)
 				}
 				if body != nil {
-					f.tw.Write(body)
+					f.tw.Write(body.Bytes())
 				}
 			}
 		}

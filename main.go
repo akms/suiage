@@ -29,3 +29,4 @@ func main() {
 	}
 	compress.Compression(beforecheck_fileinfo, dirPaths)
 }
+
