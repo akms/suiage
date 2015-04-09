@@ -4,18 +4,21 @@ suiage is simple commpress directory command in Go .
 suiage makes .tar.gz files into /mnt .
 
 #Installation
+
 ```
 > cd $GOPATH/src
 
-> git git clone https://github.com/akms/suiage 
-
+> git clone https://github.com/akms/suiage 
+or 
 > go get github.com/akms/suiage
 
 > cd suiage
 
 > go install
 ```
+
 #Example
+
 ```
 > suiage
 /mnt/hostname/bin.tar.gz

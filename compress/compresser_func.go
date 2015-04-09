@@ -2,6 +2,7 @@ package compress
 
 import (
 	"archive/tar"
+	"bytes"
 	"compress/gzip"
 	"fmt"
 	"io"
@@ -76,8 +77,6 @@ compress:
 			hdr, _ := tar.FileInfoHeader(infile, "")
 			hdr.Typeflag = tar.TypeDir
 			hdr.Name = tmpname
-			fmt.Println(hdr.Size)
-			fmt.Println(hdr.Typeflag)
 			if err = f.tw.WriteHeader(hdr); err != nil {
 				fmt.Printf("write faild header Dir %s\n", tmpname)
 				log.Fatal(err)
@@ -96,8 +95,6 @@ compress:
 				hdr, _ := tar.FileInfoHeader(infile, evalsym)
 				hdr.Typeflag = tar.TypeSymlink
 				hdr.Name = tmpname
-				fmt.Println(hdr.Size)
-				fmt.Println(hdr.Typeflag)
 				if err = f.tw.WriteHeader(hdr); err != nil {
 					fmt.Printf("write faild header symlink %s\n", tmpname)
 					log.Fatal(err)
@@ -106,13 +103,10 @@ compress:
 				hdr, _ := tar.FileInfoHeader(infile, "")
 				hdr.Typeflag = tar.TypeReg
 				hdr.Name = tmpname
-				fmt.Println(hdr.Typeflag)
 				fmt.Println(hdr.Size)
-				body = make([]byte, 0, hdr.Size)
-				body, err = ioutil.ReadFile(infile.Name())
-				if err != nil {
-					log.Fatal(err)
-				}
+				b := hdr.Size + bytes.MinRead
+				body = make([]byte, 0, b)
+				body, _ = ioutil.ReadFile(infile.Name())
 				fmt.Println(len(body))
 				if err = f.tw.WriteHeader(hdr); err != nil {
 					fmt.Printf("write faild header %s\n", tmpname)
