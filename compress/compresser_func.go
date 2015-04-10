@@ -118,31 +118,35 @@ compress:
 				if hdr.Size == 0 {
 					continue compress
 				} else if int64(0) < hdr.Size && hdr.Size <= int64(1007152000) {
-					buf = bytes.NewBuffer(make([]byte, 0, size))
-					file, err = os.Open(infile.Name())
-					if err != nil {
-						log.Fatal(err)
-					}
-					defer file.Close()
-					_, err = io.Copy(buf, file)
-					if err != nil {
-						log.Fatal(err)
-					}
-					f.tw.Write(buf.Bytes())
-				} else if size > int64(1007152000) {
-					file, err = os.Open(infile.Name())
-					if err != nil {
-						log.Fatal(err)
-					}
-					defer file.Close()
-					body = make([]byte, 8192)
-					for {
-						c, _ := file.Read(body)
-						if c == 0 {
-							break
+					func() {
+						buf = bytes.NewBuffer(make([]byte, 0, size))
+						file, err = os.Open(infile.Name())
+						if err != nil {
+							log.Fatal(err)
 						}
-						f.tw.Write(body[:c])
-					}
+						defer file.Close()
+						_, err = io.Copy(buf, file)
+						if err != nil {
+							log.Fatal(err)
+						}
+						f.tw.Write(buf.Bytes())
+					}()
+				} else if size > int64(1007152000) {
+					func() {
+						file, err = os.Open(infile.Name())
+						if err != nil {
+							log.Fatal(err)
+						}
+						defer file.Close()
+						body = make([]byte, 8192)
+						for {
+							c, _ := file.Read(body)
+							if c == 0 {
+								break
+							}
+							f.tw.Write(body[:c])
+						}
+					}()
 				}
 			}
 		}
