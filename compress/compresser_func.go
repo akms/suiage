@@ -114,11 +114,10 @@ compress:
 					fmt.Printf("write faild header %s\n", tmpname)
 					log.Fatal(err)
 				}
-				//body, err = ioutil.ReadFile(infile.Name())
 				size = hdr.Size + bytes.MinRead
 				if hdr.Size == 0 {
-					fmt.Println(size)
-				} else if int64(0) < hdr.Size && hdr.Size <= int64(10071520000) {
+					continue compress
+				} else if int64(0) < hdr.Size && hdr.Size <= int64(1007152000) {
 					buf = bytes.NewBuffer(make([]byte, 0, size))
 					file, err = os.Open(infile.Name())
 					if err != nil {
@@ -126,20 +125,19 @@ compress:
 					}
 					defer file.Close()
 					_, err = io.Copy(buf, file)
+					if err != nil {
+						log.Fatal(err)
+					}
 					f.tw.Write(buf.Bytes())
-				} else if size > int64(10071520000) {
+				} else if size > int64(1007152000) {
 					file, err = os.Open(infile.Name())
 					if err != nil {
 						log.Fatal(err)
 					}
 					defer file.Close()
-					body = make([]byte,256)
+					body = make([]byte, 8192)
 					for {
-						c, rerr := file.Read(body)
-						fmt.Println(body[:c])
-						if rerr != nil {
-							log.Fatal(rerr)
-						}
+						c, _ := file.Read(body)
 						if c == 0 {
 							break
 						}
