@@ -63,7 +63,7 @@ func (f *Fileio) CompressionFile(checked_fileinfo []os.FileInfo, dirname string)
 		hdr                     *tar.Header
 		file                    *os.File
 		size                    int64
-		//body                    []byte
+		body                    []byte
 	)
 	f.Target = &Target{}
 compress:
@@ -110,26 +110,41 @@ compress:
 				hdr, _ = tar.FileInfoHeader(infile, "")
 				hdr.Typeflag = tar.TypeReg
 				hdr.Name = tmpname
-				fmt.Println(hdr.Size)
-				size = hdr.Size + bytes.MinRead
-				buf = bytes.NewBuffer(make([]byte, 0, size))
-				//body, err = ioutil.ReadFile(infile.Name())
-				file, err = os.Open(infile.Name())
-				if err != nil {
-					log.Fatal(err)
-				}
-				defer file.Close()
-				_, err = io.Copy(buf, file)
-				if err != nil {
-					log.Fatal(err)
-				}
-				fmt.Println(len(buf.Bytes()))
 				if err = f.tw.WriteHeader(hdr); err != nil {
 					fmt.Printf("write faild header %s\n", tmpname)
 					log.Fatal(err)
 				}
-				if buf != nil {
+				//body, err = ioutil.ReadFile(infile.Name())
+				size = hdr.Size + bytes.MinRead
+				if hdr.Size == 0 {
+					fmt.Println(size)
+				} else if int64(0) < hdr.Size && hdr.Size <= int64(10071520000) {
+					buf = bytes.NewBuffer(make([]byte, 0, size))
+					file, err = os.Open(infile.Name())
+					if err != nil {
+						log.Fatal(err)
+					}
+					defer file.Close()
+					_, err = io.Copy(buf, file)
 					f.tw.Write(buf.Bytes())
+				} else if size > int64(10071520000) {
+					file, err = os.Open(infile.Name())
+					if err != nil {
+						log.Fatal(err)
+					}
+					defer file.Close()
+					body = make([]byte,256)
+					for {
+						c, rerr := file.Read(body)
+						fmt.Println(body[:c])
+						if rerr != nil {
+							log.Fatal(rerr)
+						}
+						if c == 0 {
+							break
+						}
+						f.tw.Write(body[:c])
+					}
 				}
 			}
 		}
