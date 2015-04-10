@@ -17,7 +17,7 @@ type Target struct {
 }
 
 var (
-	default_except_targets []string  = strings.Fields(`^lost\+found$ ^proc$ ^sys$ ^dev$ ^mnt$ ^media$ ^run$ ^selinux$ ^boot$ ^_old$`)
+	default_except_targets []string  = strings.Fields(`^lost\+found$ ^proc$ ^sys$ ^dev$ ^mnt$ ^media$ ^run$ ^selinux$ ^_old$`)
 	option_except_targets,err = ReadOption("/etc/suiage.conf")	
 )
 

@@ -15,7 +15,7 @@ func TestMatchDefaultTarget(t *testing.T) {
 			t.Errorf("Match faild %s", target.name)
 		}
 	}
-	default_except_targets = strings.Fields(`^lost\+found$ ^proc$ ^sys$ ^dev$ ^mnt$ ^media$ ^run$ ^selinux$ ^run$`)
+	default_except_targets = strings.Fields(`^lost\+found$ ^proc$ ^sys$ ^dev$ ^mnt$ ^media$ ^run$ ^selinux$`)
 	str = strings.Fields("var etc lib lib64")
 	for _, s := range str {
 		target.name = s

@@ -6,7 +6,8 @@ import (
 )
 
 func ChangeDir(dirName string) {
-	err := os.Chdir(dirName)
+	var err error
+	err = os.Chdir(dirName)
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -10,7 +10,6 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"runtime"
 )
 
 type Compresser interface {
@@ -56,15 +55,20 @@ func (f *Fileio) MakeFile(create_file_name string) {
 
 func (f *Fileio) CompressionFile(checked_fileinfo []os.FileInfo, dirname string) {
 	var (
-		err            error
-		tmp_fileinfo   []os.FileInfo
-		change_dirpath string
-		body           []byte
+		err                     error
+		tmp_fileinfo            []os.FileInfo
+		change_dirpath, tmpname string
+		buf                     *bytes.Buffer
+		infile                  os.FileInfo
+		hdr                     *tar.Header
+		file                    *os.File
+		size                    int64
+		body                    []byte
 	)
 	f.Target = &Target{}
 compress:
-	for _, infile := range checked_fileinfo {
-		tmpname := filepath.Join(dirname, infile.Name())
+	for _, infile = range checked_fileinfo {
+		tmpname = filepath.Join(dirname, infile.Name())
 		SetMatcherName(f, tmpname)
 		if targetMatch(f) {
 			continue compress
@@ -74,7 +78,7 @@ compress:
 			if tmp_fileinfo, err = ioutil.ReadDir(infile.Name()); err != nil {
 				log.Fatal(err)
 			}
-			hdr, _ := tar.FileInfoHeader(infile, "")
+			hdr, _ = tar.FileInfoHeader(infile, "")
 			hdr.Typeflag = tar.TypeDir
 			hdr.Name = tmpname
 			if err = f.tw.WriteHeader(hdr); err != nil {
@@ -90,9 +94,12 @@ compress:
 			ChangeDir(change_dirpath)
 			tmp_fileinfo = nil
 		} else {
+			if infile.Mode()&os.ModeSocket == os.ModeSocket {
+				continue compress
+			}
 			if infile.Mode()&os.ModeSymlink == os.ModeSymlink {
 				evalsym, _ := os.Readlink(infile.Name())
-				hdr, _ := tar.FileInfoHeader(infile, evalsym)
+				hdr, _ = tar.FileInfoHeader(infile, evalsym)
 				hdr.Typeflag = tar.TypeSymlink
 				hdr.Name = tmpname
 				if err = f.tw.WriteHeader(hdr); err != nil {
@@ -100,22 +107,43 @@ compress:
 					log.Fatal(err)
 				}
 			} else {
-				hdr, _ := tar.FileInfoHeader(infile, "")
+				hdr, _ = tar.FileInfoHeader(infile, "")
 				hdr.Typeflag = tar.TypeReg
 				hdr.Name = tmpname
-				fmt.Println(hdr.Size)
-				b := hdr.Size + bytes.MinRead
-				body = make([]byte, 0, b)
-				body, _ = ioutil.ReadFile(infile.Name())
-				fmt.Println(len(body))
 				if err = f.tw.WriteHeader(hdr); err != nil {
 					fmt.Printf("write faild header %s\n", tmpname)
 					log.Fatal(err)
 				}
-				if body != nil {
-					f.tw.Write(body)
+				size = hdr.Size + bytes.MinRead
+				if hdr.Size == 0 {
+					continue compress
+				} else if int64(0) < hdr.Size && hdr.Size <= int64(1007152000) {
+					buf = bytes.NewBuffer(make([]byte, 0, size))
+					file, err = os.Open(infile.Name())
+					if err != nil {
+						log.Fatal(err)
+					}
+					defer file.Close()
+					_, err = io.Copy(buf, file)
+					if err != nil {
+						log.Fatal(err)
+					}
+					f.tw.Write(buf.Bytes())
+				} else if size > int64(1007152000) {
+					file, err = os.Open(infile.Name())
+					if err != nil {
+						log.Fatal(err)
+					}
+					defer file.Close()
+					body = make([]byte, 8192)
+					for {
+						c, _ := file.Read(body)
+						if c == 0 {
+							break
+						}
+						f.tw.Write(body[:c])
+					}
 				}
-				runtime.GC()
 			}
 		}
 	}
