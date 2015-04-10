@@ -9,8 +9,8 @@ suiage makes .tar.gz files into /mnt .
 > cd $GOPATH/src
 
 > git clone https://github.com/akms/suiage 
-or 
-> go get github.com/akms/suiage
+
+> go get github.com/akms/suiage/compress
 
 > cd suiage
 
