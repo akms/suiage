@@ -1,10 +1,10 @@
 package main
 
 import (
+	"github.com/akms/suiage/compress"
 	"io/ioutil"
 	"log"
 	"os"
-	"github.com/akms/suiage/compress"
 )
 
 func main() {
@@ -28,4 +28,3 @@ func main() {
 	}
 	compress.Compression(beforecheck_fileinfo, dirPaths)
 }
-

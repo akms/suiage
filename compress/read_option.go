@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"regexp"
 )
 
 func FileExists(filename string) bool {
@@ -45,9 +46,13 @@ func ReadOption(fullpath string) (lines []string, err error) {
 			}
 		}
 		lines = make([]string, 0, n)
+		comment_Regexp := regexp.MustCompile(`^#`)
+		nilstr_Regexp := regexp.MustCompile(`^$`)
 		scanner := bufio.NewScanner(infile_options)
 		for scanner.Scan() {
-			lines = append(lines, scanner.Text())
+			if !comment_Regexp.MatchString(scanner.Text()) && !nilstr_Regexp.MatchString(scanner.Text()) {
+				lines = append(lines, scanner.Text())
+			}
 		}
 		if serr = scanner.Err(); serr != nil {
 			log.Fatal(serr)

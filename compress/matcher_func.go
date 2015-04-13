@@ -18,7 +18,7 @@ type Target struct {
 
 var (
 	default_except_targets []string  = strings.Fields(`^lost\+found$ ^proc$ ^sys$ ^dev$ ^mnt$ ^media$ ^run$ ^selinux$ ^_old$`)
-	option_except_targets,err = ReadOption("/etc/suiage.conf")	
+	option_except_targets,err = ReadOption("/etc/suiage.conf")
 )
 
 func (target *Target) setMatcherName(s string) {
