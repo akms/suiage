@@ -1,6 +1,7 @@
 package compress
 
 import (
+	"regexp"
 	"testing"
 )
 
@@ -20,9 +21,14 @@ func TestReadOption(t *testing.T) {
 	}
 
 	read_strings, _ = ReadOption(fullpath)
+	comment_Regexp := regexp.MustCompile(`^#`)
+	nilstr_Regexp := regexp.MustCompile(`^$`)
 	for _, c := range check_strings {
 		fchecker = false
 		for _, r := range read_strings {
+			if comment_Regexp.MatchString(r) || nilstr_Regexp.MatchString(r) {
+				t.Errorf("catch ng string %s or blank", r)
+			}
 			if c == r {
 				fchecker = true
 			}
