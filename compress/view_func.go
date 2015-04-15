@@ -74,7 +74,7 @@ func View() {
 				termui.Body.Align()
 			}
 			termui.Render(termui.Body)
-			time.Sleep(time.Second)
+			time.Sleep(time.Second / 2)
 		}
 	}
 }
