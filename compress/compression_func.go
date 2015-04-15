@@ -8,22 +8,25 @@ import (
 	"os"
 )
 
-func Compression(beforecheck_fileinfo []os.FileInfo, dirpath string) {
+var ed chan string = make(chan string)
+var fin chan string = make(chan string)
+
+func Compression(beforecheck_fileinfo []os.FileInfo, dirpath string, comfile *Fileio) {
 
 	var (
 		checked_fileinfo []os.FileInfo
 		err              error
-		comfile          *Fileio = &Fileio{Target: &Target{}}
 	)
-	
+
 	ChangeDir(dirpath)
 
 L:
-	for _, info := range beforecheck_fileinfo {
+	for _, info := range beforecheck_fileinfo {		
 		SetMatcherName(comfile, info.Name())
 		if targetMatch(comfile) {
 			continue L
 		}
+		ed <- info.Name()
 		if info.Mode()&os.ModeSymlink == os.ModeSymlink {
 			comfile.MakeFile(info.Name())
 			evalsym, _ := os.Readlink(info.Name())
@@ -56,4 +59,5 @@ L:
 			}
 		}
 	}
+	fin <- "fin"
 }

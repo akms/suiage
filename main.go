@@ -4,7 +4,8 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-	"github.com/akms/suiage/compress"
+	//"github.com/akms/suiage/compress"
+	"suiage/compress"
 )
 
 func main() {
@@ -13,7 +14,9 @@ func main() {
 		err                  error
 		hostname             string
 		beforecheck_fileinfo []os.FileInfo
+		comfile              *compress.Fileio = &compress.Fileio{Target: &compress.Target{}}
 	)
+	go compress.View()
 	if hostname, err = os.Hostname(); err != nil {
 		log.Fatal(err)
 	}
@@ -26,6 +29,5 @@ func main() {
 	if beforecheck_fileinfo, err = ioutil.ReadDir(dirPaths); err != nil {
 		log.Fatal(err)
 	}
-	compress.Compression(beforecheck_fileinfo, dirPaths)
+	compress.Compression(beforecheck_fileinfo, dirPaths, comfile)
 }
-

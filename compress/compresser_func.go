@@ -12,6 +12,8 @@ import (
 	"path/filepath"
 )
 
+var ef chan string = make(chan string)
+
 type Compresser interface {
 	CompressionFile([]os.FileInfo, string)
 	MakeFile(string)
@@ -48,7 +50,7 @@ func (f *Fileio) MakeFile(create_file_name string) {
 	if f.file, err = os.Create(hostname); err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(hostname)
+	//fmt.Println(hostname)
 	f.fileWriter = gzip.NewWriter(f.file)
 	f.tw = tar.NewWriter(f.fileWriter)
 }
@@ -73,7 +75,8 @@ compress:
 		if targetMatch(f) {
 			continue compress
 		}
-		fmt.Println(tmpname)
+		//fmt.Println(tmpname)
+		ef <- tmpname
 		if infile.IsDir() {
 			if tmp_fileinfo, err = ioutil.ReadDir(infile.Name()); err != nil {
 				log.Fatal(err)

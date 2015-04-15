@@ -38,6 +38,7 @@ func (mock *MockFile) Sys() interface{} {
 
 func TestCompression(t *testing.T) {
 	var (
+		comfile *Fileio = &Fileio{Target: &Target{}}
 		mockfile                                   *MockFile = &MockFile{name: "test.txt", size: 0, isdir: false, mode: os.ModePerm}
 		mockdir                                    *MockFile = &MockFile{name: "test", size: 4096, isdir: true, mode: os.ModeDir}
 		mockdir2                                   *MockFile = &MockFile{name: "test3", size: 4096, isdir: true, mode: os.ModeDir}
@@ -59,7 +60,7 @@ func TestCompression(t *testing.T) {
 	gopath = getGopath()
 	dirpath = gopath + "/src/suiage/compress/test"
 	ChangeDir(dirpath)
-	Compression(mocks, dirpath)
+	Compression(mocks, dirpath, comfile)
 
 	hostname, _ = os.Hostname()
 	hostname = "/mnt/" + hostname
