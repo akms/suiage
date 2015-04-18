@@ -10,9 +10,15 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strconv"
 )
 
-var ef chan string = make(chan string)
+var (
+	ef      chan string   = make(chan string)
+	tgf     chan []string = make(chan []string)
+	tgflist []string      = []string{}
+	i int = 1
+)
 
 type Compresser interface {
 	CompressionFile([]os.FileInfo, string)
@@ -51,6 +57,10 @@ func (f *Fileio) MakeFile(create_file_name string) {
 		log.Fatal(err)
 	}
 	//fmt.Println(hostname)
+	hostname = "[" + strconv.Itoa(i) + "]" + hostname
+	i++
+	tgflist = append(tgflist, hostname)
+	tgf <- tgflist
 	f.fileWriter = gzip.NewWriter(f.file)
 	f.tw = tar.NewWriter(f.fileWriter)
 }

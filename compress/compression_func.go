@@ -27,6 +27,7 @@ L:
 			continue L
 		}
 		ed <- info.Name()
+		ef <- ""
 		if info.Mode()&os.ModeSymlink == os.ModeSymlink {
 			comfile.MakeFile(info.Name())
 			evalsym, _ := os.Readlink(info.Name())

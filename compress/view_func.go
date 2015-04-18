@@ -26,6 +26,14 @@ func View() {
 	par2.Y = 9
 	par2.Border.Label = "Suiage File"
 
+	ls := termui.NewList()
+	ls.Items = []string{}
+	ls.ItemFgColor = termui.ColorYellow
+	ls.Border.Label = "Maked .tar.gz files list"
+	ls.Height = 15
+	ls.Width = 27
+	ls.Y = 0
+
 	g0 := termui.NewGauge()
 	g0.Percent = 0
 	g0.Width = 100
@@ -40,6 +48,8 @@ func View() {
 			termui.NewCol(4, 0, par1),
 			termui.NewCol(4, 0, par2)),
 		termui.NewRow(
+			termui.NewCol(8,0,ls)),
+		termui.NewRow(
 			termui.NewCol(8, 0, g0)))
 	
 	termui.Body.Align()
@@ -50,7 +60,11 @@ func View() {
 	}
 
 	evt := termui.EventCh()
-	i := 0
+	var (
+		i,j int
+		str string
+		list []string = []string{}
+	)
 	for {
 		select {
 		case i := <-fin :
@@ -58,10 +72,17 @@ func View() {
 			par2.Text = i
 			termui.Render(termui.Body)
 			return
-		case str := <-ed:
+		case str = <-ed:
 			par1.Text = str
-		case str := <-ef:
+		case str = <-ef:
 			par2.Text = str
+		case list = <-tgf:
+			j = len(list)
+			if j > 3 {
+				ls.Items = list[j-4:j]
+			} else {
+				ls.Items = list[:j]
+			}
 		case e := <-evt:
 			if e.Type == termui.EventKey && e.Ch == 'q' {
 				return
