@@ -3,6 +3,8 @@ suiage is simple commpress directory command in Go .
 
 suiage makes .tar.gz files into /mnt .
 
+<img src="./compress/test/scs.gif" alt="grid" width="500">
+
 #Installation
 
 ```
