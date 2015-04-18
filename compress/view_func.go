@@ -16,13 +16,13 @@ func View() {
 
 	par1 := termui.NewPar("")
 	par1.Height = 3
-	par1.Width = 37
+	par1.Width = 50
 	par1.Y = 9
 	par1.Border.Label = "Suiage Dir"
 
 	par2 := termui.NewPar("")
 	par2.Height = 3
-	par2.Width = 37
+	par2.Width = 50
 	par2.Y = 9
 	par2.Border.Label = "Suiage File"
 
@@ -30,8 +30,8 @@ func View() {
 	ls.Items = []string{}
 	ls.ItemFgColor = termui.ColorYellow
 	ls.Border.Label = "Maked .tar.gz files list"
-	ls.Height = 15
-	ls.Width = 27
+	ls.Height = 6
+	ls.Width = 120
 	ls.Y = 0
 
 	g0 := termui.NewGauge()
@@ -46,11 +46,11 @@ func View() {
 	termui.Body.AddRows(
 		termui.NewRow(
 			termui.NewCol(4, 0, par1),
-			termui.NewCol(4, 0, par2)),
+			termui.NewCol(6, 0, par2)),
 		termui.NewRow(
-			termui.NewCol(8,0,ls)),
+			termui.NewCol(10,0,ls)),
 		termui.NewRow(
-			termui.NewCol(8, 0, g0)))
+			termui.NewCol(10, 0, g0)))
 	
 	termui.Body.Align()
 
